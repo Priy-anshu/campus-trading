@@ -6,7 +6,7 @@
  */
 
 // Base API URL - proxied by Vite to backend at http://localhost:5000
-export const API_BASE = "/api";
+export const API_BASE = import.meta.env.VITE_API_URL;
 
 // API Endpoints
 export const ENDPOINTS = {
