@@ -25,10 +25,10 @@ app.get('/health', (req, res) => {
 });
 
 // Routes
-app.use('/api/api/auth', authRoutes);
-app.use('/api/api/portfolio', portfolioRoutes);
-app.use('/api/api/stocks', stockRoutes);
-app.use('/api/api/orders', orderRoutes);
+app.use('/api/auth', authRoutes);
+app.use('/api/portfolio', portfolioRoutes);
+app.use('/api/stocks', stockRoutes);
+app.use('/api/orders', orderRoutes);
 
 // Global error handler
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
