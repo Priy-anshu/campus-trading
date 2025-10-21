@@ -12,7 +12,10 @@ dotenv.config();
 const app = express();
 
 // Middleware
-app.use(cors());
+app.use(cors({
+  origin: ['https://paper-trading-frontend.netlify.app'], // replace with your Netlify URL
+  credentials: true,
+}));
 app.use(express.json());
 // app.use('../.env')
 
@@ -41,15 +44,16 @@ const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/campus_exc
 async function start() {
   try {
     await mongoose.connect(MONGO_URI, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
       serverSelectionTimeoutMS: 5000,
     });
-    console.log('MongoDB connected');
-    app.listen(PORT, () => console.log(`Backend listening on http://localhost:${PORT}`));
+    console.log('✅ MongoDB connected successfully');
+    app.listen(PORT, () => console.log(`🚀 Server running on http://localhost:${PORT}`));
   } catch (error) {
-    console.error('Failed to start server', error);
+    console.error('❌ Failed to connect to MongoDB:', error.message);
     process.exit(1);
   }
 }
 
 start();
-
