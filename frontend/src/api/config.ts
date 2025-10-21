@@ -15,25 +15,25 @@ export const API_BASE =
 // API Endpoints
 export const ENDPOINTS = {
   // Auth endpoints
-  register: `${API_BASE}/auth/register`,
-  login: `${API_BASE}/auth/login`,
-  me: `${API_BASE}/auth/user`,
+  register: `${API_BASE}/api/auth/register`,
+  login: `${API_BASE}/api/auth/login`,
+  me: `${API_BASE}/api/auth/user`,
 
   // Portfolio endpoints
-  portfolio: `${API_BASE}/portfolio`,
-  buy: `${API_BASE}/portfolio/buy`,
-  sell: `${API_BASE}/portfolio/sell`,
-  fund: `${API_BASE}/portfolio/fund`,
+  portfolio: `${API_BASE}/api/portfolio`,
+  buy: `${API_BASE}/api/portfolio/buy`,
+  sell: `${API_BASE}/api/portfolio/sell`,
+  fund: `${API_BASE}/api/portfolio/fund`,
 
   // Stock data endpoints
-  gainers: `${API_BASE}/stocks/gainers`,
-  losers: `${API_BASE}/stocks/losers`,
-  allStocks: `${API_BASE}/stocks/all`,
-  stockSearch: `${API_BASE}/stocks/search`,
+  gainers: `${API_BASE}/api/stocks/gainers`,
+  losers: `${API_BASE}/api/stocks/losers`,
+  allStocks: `${API_BASE}/api/stocks/all`,
+  stockSearch: `${API_BASE}/api/stocks/search`,
 
   // Order endpoints
-  orders: `${API_BASE}/orders`,
-  orderStats: `${API_BASE}/orders/stats`,
+  orders: `${API_BASE}/api/orders`,
+  orderStats: `${API_BASE}/api/orders/stats`,
 };
 
 // API Headers
