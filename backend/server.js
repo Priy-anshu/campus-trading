@@ -13,7 +13,7 @@ const app = express();
 
 // Middleware
 app.use(cors({
-  origin: ['https://paper-trading-frontend.netlify.app'], // replace with your Netlify URL
+  origin: ['https://campus-trading.netlify.app'], // replace with your Netlify URL
   credentials: true,
 }));
 app.use(express.json());
