@@ -1,0 +1,156 @@
+import { TrendingUp, Search, Bell, User, LogOut } from "lucide-react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { logout } from "@/services/authService";
+import { useToast } from "@/hooks/use-toast";
+import { useEffect, useRef, useState } from "react";
+import { ENDPOINTS, apiClient } from "@/api/config";
+
+const Navbar = () => {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const { toast } = useToast();
+  const [query, setQuery] = useState("");
+  const [results, setResults] = useState<any[]>([]);
+  const [open, setOpen] = useState(false);
+  const inputRef = useRef<HTMLInputElement | null>(null);
+  const timeoutRef = useRef<number | undefined>(undefined);
+  
+  const isActive = (path: string) => location.pathname === path;
+  
+  const handleLogout = () => {
+    logout();
+    toast({
+      title: "Logged out successfully",
+      description: "You have been logged out of your account.",
+    });
+    navigate('/login');
+  };
+
+  const toNumber = (val: any) => {
+    const s = String(val ?? '').replace(/,/g, '').trim();
+    const n = parseFloat(s);
+    return Number.isNaN(n) ? 0 : n;
+  };
+
+  useEffect(() => {
+    window.addEventListener('click', (e) => {
+      if (!inputRef.current) return;
+      if (!(e.target as HTMLElement).closest('#global-search')) setOpen(false);
+    });
+  }, []);
+
+  const onSearchChange = (val: string) => {
+    setQuery(val);
+    setOpen(!!val);
+    if (timeoutRef.current) window.clearTimeout(timeoutRef.current);
+    timeoutRef.current = window.setTimeout(async () => {
+      if (!val) return setResults([]);
+      try {
+        const { data } = await apiClient.get(ENDPOINTS.stockSearch, { params: { symbol: val } });
+        const normalized = (Array.isArray(data) ? data : []).slice(0, 8).map((it: any) => ({
+          symbol: it.symbol,
+          name: it.companyName || it.name || it.symbol,
+          price: toNumber(it.price ?? it.lastPrice ?? it.ltp),
+        }));
+        setResults(normalized);
+      } catch (err) {
+        setResults([]);
+      }
+    }, 300);
+  };
+
+  const goToSymbol = (sym: string) => {
+    setOpen(false);
+    setQuery("");
+    setResults([]);
+    navigate(`/stock/${sym}`);
+  };
+  
+  return (
+    <nav className="sticky top-0 z-50 border-b border-border bg-card shadow-sm">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="flex h-16 items-center justify-between">
+          <Link to="/dashboard" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-primary/80">
+              <TrendingUp className="h-6 w-6 text-primary-foreground" />
+            </div>
+            <span className="text-xl font-bold text-foreground">Campus Exchange</span>
+          </Link>
+          
+          <div className="flex items-center gap-6">
+            <Link 
+              to="/dashboard" 
+              className={`text-sm font-medium transition-colors hover:text-primary ${
+                isActive('/dashboard') ? 'text-foreground' : 'text-muted-foreground'
+              }`}
+            >
+              Dashboard
+            </Link>
+            <Link 
+              to="/portfolio" 
+              className={`text-sm font-medium transition-colors hover:text-primary ${
+                isActive('/portfolio') ? 'text-foreground' : 'text-muted-foreground'
+              }`}
+            >
+              Portfolio
+            </Link>
+            <Link 
+              to="/orders" 
+              className={`text-sm font-medium transition-colors hover:text-primary ${
+                isActive('/orders') ? 'text-foreground' : 'text-muted-foreground'
+              }`}
+            >
+              Orders
+            </Link>
+            
+            <div id="global-search" className="ml-4 flex items-center gap-2 relative">
+              <div className="relative">
+                <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                <input
+                  ref={inputRef}
+                  value={query}
+                  onChange={(e) => onSearchChange(e.target.value)}
+                  placeholder="Search stocks..."
+                  className="h-9 w-56 rounded-md border border-input bg-background pl-8 pr-3 text-sm outline-none focus:ring-2 focus:ring-ring"
+                />
+              </div>
+              {open && results.length > 0 && (
+                <div className="absolute left-0 top-10 w-[260px] rounded-md border border-border bg-popover shadow-md z-50">
+                  {results.map((r) => (
+                    <button
+                      key={r.symbol}
+                      onClick={() => goToSymbol(r.symbol)}
+                      className="w-full px-3 py-2 text-left text-sm hover:bg-muted flex items-center justify-between"
+                    >
+                      <span className="truncate mr-2">{r.symbol} — {r.name}</span>
+                      <span className="text-muted-foreground">₹{r.price.toLocaleString('en-IN')}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+              
+              <Button variant="ghost" size="icon" className="h-9 w-9">
+                <Bell className="h-4 w-4" />
+              </Button>
+              <Button variant="ghost" size="icon" className="h-9 w-9">
+                <User className="h-4 w-4" />
+              </Button>
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="h-9 w-9 hover:text-red-500"
+                onClick={handleLogout}
+                title="Logout"
+              >
+                <LogOut className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </nav>
+  );
+};
+
+export default Navbar;
