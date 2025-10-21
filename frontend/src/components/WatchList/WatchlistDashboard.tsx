@@ -21,20 +21,6 @@ interface Watchlist {
 // Mock data - will be replaced with API calls
 const initialWatchlists: Watchlist[] = [
   {
-    id: "1",
-    name: "Tech Stocks",
-    stocks: [
-      { symbol: "TCS", companyName: "Tata Consultancy Services", price: 3525.75, percentChange: 0.8 },
-      { symbol: "INFY", companyName: "Infosys", price: 1565.50, percentChange: 1.2 },
-    ],
-  },
-  {
-    id: "2",
-    name: "Banking",
-    stocks: [
-      { symbol: "HDFCBANK", companyName: "HDFC Bank", price: 1485.25, percentChange: -0.5 },
-      { symbol: "ICICIBANK", companyName: "ICICI Bank", price: 925.30, percentChange: 0.6 },
-    ],
   },
 ];
 
