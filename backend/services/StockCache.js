@@ -28,18 +28,29 @@ function normalize(item) {
 
 export async function refreshCache() {
   try {
-    // Single external call (Yahoo fallback inside service) to fetch a broad set of stocks
     const allRes = await fetchAllStockInsiderTrades();
-    if (allRes.success) cache.all = (allRes.data || []).map(normalize);
 
-    // Compute gainers/losers locally from the cached universe
-    const sortedByChange = [...cache.all].sort((a, b) => b.pChange - a.pChange);
-    cache.gainers = sortedByChange.slice(0, 300);
-    cache.losers = sortedByChange.reverse().slice(0, 300);
+    // ✅ Only update if we actually get non-empty, successful data
+    if (allRes?.success && Array.isArray(allRes.data) && allRes.data.length > 0) {
+      const normalizedData = allRes.data.map(normalize);
+      cache.all = normalizedData;
 
-    cache.lastUpdated = Date.now();
-    cache.error = null;
+      // Compute gainers/losers
+      const sortedByChange = [...normalizedData].sort((a, b) => b.pChange - a.pChange);
+      cache.gainers = sortedByChange.slice(0, 300);
+      cache.losers = [...sortedByChange].reverse().slice(0, 300);
+
+      cache.lastUpdated = Date.now();
+      cache.error = null;
+      console.log(`[Cache Refresh] Success - ${cache.all.length} records updated.`);
+    } else {
+      // ⚠️ API call succeeded but no valid data received
+      console.warn('[Cache Refresh] Empty data received. Keeping old cache.');
+      cache.error = 'Empty data received. Using old cache.';
+    }
   } catch (e) {
+    // ⚠️ Network or API failure — keep old data
+    console.error('[Cache Refresh] Failed:', e.message);
     cache.error = e?.message || 'refresh failed';
   }
 }
@@ -49,6 +60,7 @@ const INTERVAL_MS = 5 * 60 * 1000;
 refreshCache();
 setInterval(refreshCache, INTERVAL_MS).unref?.();
 
+// Public getters
 export function getGainers(limit = 10) {
   return cache.gainers.slice(0, limit);
 }
@@ -70,7 +82,11 @@ export function searchBySymbol(query) {
 export function getStatus() {
   return {
     lastUpdated: cache.lastUpdated,
-    sizes: { gainers: cache.gainers.length, losers: cache.losers.length, all: cache.all.length },
+    sizes: {
+      gainers: cache.gainers.length,
+      losers: cache.losers.length,
+      all: cache.all.length,
+    },
     error: cache.error,
   };
 }
