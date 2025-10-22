@@ -45,7 +45,7 @@ export async function refreshCache() {
 }
 
 // Start periodic refresh: 1 call per 5 minutes
-const INTERVAL_MS = 60 * 1000;
+const INTERVAL_MS = 5 * 60 * 1000;
 refreshCache();
 setInterval(refreshCache, INTERVAL_MS).unref?.();
 
