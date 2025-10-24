@@ -25,7 +25,10 @@ router.get('/losers', async (req, res) => {
 router.get('/all', async (req, res) => {
   const data = getAll();
   if (!data || data.length === 0) return fail(res, 'no data');
-  res.json(data);
+  res.json({
+    success: true,
+    data: data
+  });
 });
 
 router.get('/search', async (req, res) => {
@@ -36,6 +39,30 @@ router.get('/search', async (req, res) => {
   const result = await fetchStockByName(symbol);
   if (!result.success) return fail(res, result.error);
   res.json(result.data);
+});
+
+router.get('/price/:symbol', async (req, res) => {
+  const symbol = req.params.symbol.toUpperCase();
+  const allStocks = getAll();
+  const stock = allStocks.find(s => s.symbol === symbol);
+  
+  if (!stock) {
+    return res.status(404).json({ 
+      success: false, 
+      message: `Stock ${symbol} not found in cache` 
+    });
+  }
+  
+  res.json({
+    success: true,
+    data: {
+      symbol: stock.symbol,
+      price: stock.lastPrice,
+      change: stock.change,
+      changePercent: stock.pChange,
+      volume: stock.totalTradedVolume
+    }
+  });
 });
 
 router.get('/status', (req, res) => {
