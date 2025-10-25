@@ -1,5 +1,6 @@
 import { Card } from "@/components/ui/card";
 import HoldingsRow from "./HoldingsRow";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface HoldingData {
   id: string;
@@ -19,6 +20,8 @@ interface HoldingsTableProps {
 }
 
 const HoldingsTable = ({ holdings }: HoldingsTableProps) => {
+  const isMobile = useIsMobile();
+
   if (holdings.length === 0) {
     return (
       <Card className="p-12 text-center">
@@ -50,8 +53,8 @@ const HoldingsTable = ({ holdings }: HoldingsTableProps) => {
           </tr>
         </thead>
         <tbody>
-          {holdings.map((holding) => (
-            <HoldingsRow key={holding.id} holding={holding} />
+          {holdings.map((holding, index) => (
+            <HoldingsRow key={holding.id || `holding-${index}`} holding={holding} />
           ))}
         </tbody>
       </table>

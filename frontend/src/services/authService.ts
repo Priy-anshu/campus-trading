@@ -1,5 +1,5 @@
 import { apiClient } from '@/api/config';
-const API_BASE_URL = '/api/auth';
+const API_BASE_URL = '/auth';
 
 export interface LoginCredentials {
   email: string;
@@ -10,6 +10,9 @@ export interface SignupCredentials {
   name: string;
   email: string;
   password: string;
+  mobileNumber: string;
+  dateOfBirth: string;
+  gender: string;
 }
 
 export interface AuthResponse {
@@ -17,7 +20,11 @@ export interface AuthResponse {
   user: {
     id: string;
     name: string;
+    username: string;
     email: string;
+    mobileNumber: string;
+    dateOfBirth: string;
+    gender: string;
   };
 }
 

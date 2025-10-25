@@ -5,7 +5,8 @@ import HoldingsTable from "./HoldingsTable";
 import Loader from "../Dashboard/Loader";
 import ErrorCard from "../Dashboard/ErrorCard";
 import { Button } from "@/components/ui/button";
-import { ENDPOINTS, apiClient } from "@/api/config";
+import { usePortfolio } from "@/hooks/usePortfolio";
+import { fetchMultipleStockPrices, StockPrice } from "@/services/stockService";
 
 // type HoldingRow = {
 //   id: string;
@@ -36,133 +37,129 @@ type HoldingRow = {
 
 const HoldingsDashboard = () => {
   const [showValues, setShowValues] = useState(true);
-  const [holdings, setHoldings] = useState<HoldingRow[]>([]);
-  const [summary, setSummary] = useState<any | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const { portfolioData, loading, error, refreshPortfolio } = usePortfolio();
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [priceCache, setPriceCache] = useState<Record<string, number>>({});
+  const [stockPrices, setStockPrices] = useState<Record<string, StockPrice>>({});
+  const [pricesLoading, setPricesLoading] = useState(false);
 
-  const fetchPortfolio = async (isRefresh = false) => {
-    if (isRefresh) {
-      setIsRefreshing(true);
-    } else {
-      setIsLoading(true);
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    await refreshPortfolio();
+    // Also refresh stock prices
+    if (portfolioData?.holdings) {
+      await fetchStockPrices(portfolioData.holdings);
     }
-    setError(null);
+    setIsRefreshing(false);
+  };
+
+  const fetchStockPrices = async (holdings: any[]) => {
+    if (holdings.length === 0) return;
+    
+    setPricesLoading(true);
     try {
-        const token = localStorage.getItem("token");
-        const { data } = await apiClient.get(ENDPOINTS.portfolio, {
-          headers: token ? { Authorization: `Bearer ${token}` } : {},
-        });
-        
-        const holdings = data?.holdings || [];
-        const holdingsWithPrices: HoldingRow[] = [];
-        
-        // First, create holdings with invested values (immediate display)
-        for (const holding of holdings) {
-          const quantity = Number(holding.quantity || 0);
-          const avgPrice = Number(holding.avgPrice || 0);
-          const investedValue = quantity * avgPrice;
-          
-          holdingsWithPrices.push({
-            id: String(holding._id || holding.symbol || Math.random()),
-            company: holding.symbol || "—",
-            shares: quantity,
-            avgPrice: avgPrice,
-            marketPrice: avgPrice, // Start with avg price
-            dayChangePercent: 0,
-            investedValue: investedValue,
-            currentValue: investedValue, // Start with invested value
-            profitLoss: 0,
-            profitLossPercent: 0,
-          });
-        }
-        
-        // Set initial data immediately
-        setHoldings(holdingsWithPrices);
-        
-        // Then fetch current prices in parallel
-        const pricePromises = holdings.map(async (holding) => {
-          const symbol = holding.symbol;
-          
-          // Check cache first (valid for 30 seconds)
-          const cachedPrice = priceCache[symbol];
-          const cacheTime = localStorage.getItem(`price_${symbol}_time`);
-          const isCacheValid = cacheTime && (Date.now() - parseInt(cacheTime)) < 30000;
-          
-          if (cachedPrice && isCacheValid) {
-            return { symbol, price: cachedPrice };
-          }
-          
-          try {
-            const { data: stockData } = await apiClient.get(ENDPOINTS.stockSearch, { 
-              params: { symbol } 
-            });
-            const currentPrice = stockData?.[0]?.lastPrice || stockData?.[0]?.price || 0;
-            
-            // Cache the price
-            setPriceCache(prev => ({ ...prev, [symbol]: currentPrice }));
-            localStorage.setItem(`price_${symbol}_time`, Date.now().toString());
-            
-            return { symbol, price: Number(currentPrice) };
-          } catch (err) {
-            return { symbol, price: Number(holding.avgPrice || 0) };
-          }
-        });
-        
-        // Wait for all price fetches to complete
-        const priceResults = await Promise.all(pricePromises);
-        
-        // Update holdings with current prices
-        const updatedHoldings = holdingsWithPrices.map(holding => {
-          const priceResult = priceResults.find(p => p.symbol === holding.company);
-          const currentPrice = priceResult?.price || holding.avgPrice;
-          const currentValue = holding.shares * currentPrice;
-          const profitLoss = currentValue - holding.investedValue;
-          const profitLossPercent = holding.investedValue > 0 ? (profitLoss / holding.investedValue) * 100 : 0;
-          
-          return {
-            ...holding,
-            marketPrice: currentPrice,
-            currentValue: currentValue,
-            profitLoss: profitLoss,
-            profitLossPercent: profitLossPercent,
-          };
-        });
-        
-        setHoldings(updatedHoldings);
-        
-        // Calculate summary with updated holdings
-        const totalInvestedValue = updatedHoldings.reduce((sum, h) => sum + h.investedValue, 0);
-        const totalCurrentValue = updatedHoldings.reduce((sum, h) => sum + h.currentValue, 0);
-        const totalProfitLoss = totalCurrentValue - totalInvestedValue;
-        const totalProfitLossPercent = totalInvestedValue > 0 ? (totalProfitLoss / totalInvestedValue) * 100 : 0;
-        
-        const summaryData = {
-          currentValue: totalCurrentValue,
-          investedValue: totalInvestedValue,
-          totalReturn: totalProfitLoss,
-          totalReturnPercent: totalProfitLossPercent,
-          oneDayReturn: 0, // We don't have 1D data
-          oneDayReturnPercent: 0,
-        };
-        
-        setSummary(summaryData);
-      } catch (e) {
-        setError("Failed to load portfolio");
-      } finally {
-        setIsLoading(false);
-        setIsRefreshing(false);
-      }
-    };
+      const symbols = holdings.map(h => h.symbol || h.company).filter(Boolean);
+      const prices = await fetchMultipleStockPrices(symbols);
+      setStockPrices(prices);
+    } catch (error) {
+      // Silently handle errors
+    } finally {
+      setPricesLoading(false);
+    }
+  };
 
+  // Fetch stock prices when portfolio data changes
   useEffect(() => {
-    fetchPortfolio();
-  }, []);
+    if (portfolioData?.holdings) {
+      fetchStockPrices(portfolioData.holdings);
+    }
+  }, [portfolioData]);
 
-  if (isLoading) return <Loader />;
+  // Set up periodic refresh for stock prices every 30 seconds
+  useEffect(() => {
+    if (portfolioData?.holdings && portfolioData.holdings.length > 0) {
+      const interval = setInterval(() => {
+        fetchStockPrices(portfolioData.holdings);
+      }, 30000); // 30 seconds
+
+      return () => clearInterval(interval);
+    }
+  }, [portfolioData]);
+
+  if (loading) return <Loader />;
   if (error) return <ErrorCard message={error} />;
+
+  // Transform portfolio data to match expected format
+  const holdings = (portfolioData?.holdings || []).map((holding: any, index: number) => {
+    const shares = Number(holding.quantity || holding.shares || 0);
+    const avgPrice = Number(holding.avgPrice || 0);
+    const symbol = holding.symbol || holding.company || 'Unknown';
+    
+    // Get real-time market price from stock cache
+    const stockPrice = stockPrices[symbol];
+    const marketPrice = stockPrice ? stockPrice.price : Number(holding.currentPrice || holding.marketPrice || holding.avgPrice || 0);
+    
+    const investedValue = shares * avgPrice;
+    const currentValue = shares * marketPrice;
+    const profitLoss = currentValue - investedValue;
+    const profitLossPercent = investedValue > 0 ? (profitLoss / investedValue) * 100 : 0;
+    
+    // Calculate 1-day return percentage based on stock's day change applied to invested value
+    const stockDayChangePercent = stockPrice ? stockPrice.changePercent : 0;
+    const dayChangePercent = stockDayChangePercent;
+
+    return {
+      id: holding._id || holding.id || `holding-${index}`,
+      company: symbol,
+      shares: shares,
+      avgPrice: avgPrice,
+      marketPrice: marketPrice,
+      dayChangePercent: dayChangePercent,
+      profitLoss: profitLoss,
+      profitLossPercent: profitLossPercent,
+      investedValue: investedValue,
+      currentValue: currentValue,
+    };
+  });
+
+  // Calculate summary from holdings
+  const totalInvestedValue = holdings.reduce((sum, h) => sum + h.investedValue, 0);
+  const totalCurrentValue = holdings.reduce((sum, h) => sum + h.currentValue, 0);
+  const totalReturn = totalCurrentValue - totalInvestedValue;
+  const totalReturnPercent = totalInvestedValue > 0 ? (totalReturn / totalInvestedValue) * 100 : 0;
+
+  const summary = {
+    currentValue: totalCurrentValue,
+    investedValue: totalInvestedValue,
+    totalReturn: totalReturn,
+    totalReturnPercent: totalReturnPercent,
+    oneDayReturn: 0, // We don't have 1D data
+    oneDayReturnPercent: 0,
+  };
+
+  // If no portfolio data, show empty state
+  if (!portfolioData) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <h1 className="text-2xl font-bold text-foreground">Holdings</h1>
+            <span className="text-sm text-muted-foreground">(0)</span>
+          </div>
+        </div>
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              <HoldingsSummaryCard title="Current Value" value="₹0.00" />
+              <HoldingsSummaryCard title="Invested Value" value="₹0.00" />
+              <HoldingsSummaryCard title="Total Returns" value="₹0.00" />
+            </div>
+        <div className="text-center py-12">
+          <p className="text-lg font-medium text-muted-foreground">No holdings yet</p>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Your investments will appear here once you make your first purchase
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -171,18 +168,24 @@ const HoldingsDashboard = () => {
         <div className="flex items-center gap-2">
           <h1 className="text-2xl font-bold text-foreground">Holdings</h1>
           <span className="text-sm text-muted-foreground">({holdings.length})</span>
+          {pricesLoading && (
+            <div className="flex items-center gap-1 text-xs text-muted-foreground">
+              <RefreshCw className="h-3 w-3 animate-spin" />
+              <span>Updating prices...</span>
+            </div>
+          )}
         </div>
-        <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => fetchPortfolio(true)}
-            disabled={isRefreshing}
-            className="gap-2"
-          >
-            <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
-            {isRefreshing ? 'Refreshing...' : 'Refresh'}
-          </Button>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleRefresh}
+                disabled={isRefreshing || pricesLoading}
+                className="gap-2"
+              >
+                <RefreshCw className={`h-4 w-4 ${isRefreshing || pricesLoading ? 'animate-spin' : ''}`} />
+                {isRefreshing || pricesLoading ? 'Refreshing...' : 'Refresh'}
+              </Button>
           <button
             onClick={() => setShowValues(!showValues)}
             className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted"
@@ -198,32 +201,32 @@ const HoldingsDashboard = () => {
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <HoldingsSummaryCard
           title="Current Value"
-          value={showValues ? `₹${Number(summary?.currentValue || 0).toLocaleString()}` : "••••••"}
+          value={showValues ? `₹${Number(summary?.currentValue || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}` : "••••••"}
         />
         <HoldingsSummaryCard
           title="Invested Value"
-          value={showValues ? `₹${Number(summary?.investedValue || 0).toLocaleString()}` : "••••••"}
+          value={showValues ? `₹${Number(summary?.investedValue || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}` : "••••••"}
         />
         <HoldingsSummaryCard
           title="1D Returns"
-          value={showValues ? `₹${Number(summary?.oneDayReturn || 0).toLocaleString()}` : "••••••"}
+          value={showValues ? `₹${Number(portfolioData?.oneDayReturn || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}` : "••••••"}
           change={
-            showValues && summary
+            showValues && portfolioData && summary?.investedValue > 0
               ? {
-                  amount: `₹${Number(summary.oneDayReturn || 0).toFixed(2)}`,
-                  percent: `${Number(summary.oneDayReturnPercent || 0).toFixed(2)}%`,
-                  isPositive: Number(summary.oneDayReturn || 0) >= 0,
+                  amount: `₹${Number(portfolioData.oneDayReturn || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}`,
+                  percent: `${((Number(portfolioData.oneDayReturn || 0) / summary.investedValue) * 100).toFixed(2)}%`,
+                  isPositive: Number(portfolioData.oneDayReturn || 0) >= 0,
                 }
               : undefined
           }
         />
         <HoldingsSummaryCard
           title="Total Returns"
-          value={showValues ? `₹${Number(summary?.totalReturn || 0).toLocaleString()}` : "••••••"}
+          value={showValues ? `₹${Number(summary?.totalReturn || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}` : "••••••"}
           change={
             showValues && summary
               ? {
-                  amount: `₹${Number(summary.totalReturn || 0).toFixed(2)}`,
+                  amount: `₹${Number(summary.totalReturn || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}`,
                   percent: `${Number(summary.totalReturnPercent || 0).toFixed(2)}%`,
                   isPositive: Number(summary.totalReturn || 0) >= 0,
                 }

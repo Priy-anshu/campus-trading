@@ -46,7 +46,7 @@ const TradePanel = ({ symbol, currentPrice }: TradePanelProps) => {
         const holding = data.holdings?.find((h: any) => h.symbol === symbol);
         setAvailableQuantity(holding?.quantity || 0);
       } catch (err) {
-        console.error("Failed to fetch portfolio data:", err);
+        // Silently handle errors
       }
     };
     

@@ -2,35 +2,30 @@ import { useEffect } from "react";
 import Navbar from "@/components/Navbar";
 import MarketTicker from "@/components/Dashboard/MarketTicker";
 import TopMovers from "@/components/Dashboard/TopMovers";
-import ProductionTools from "@/components/Dashboard/ProductionTools";
+import Leaderboard from "@/components/Dashboard/Leaderboard";
 import MostTraded from "@/components/Dashboard/MostTraded";
-import InvestmentSummary from "@/components/Dashboard/InvestmentSummary";
 import { useAutoRefresh } from "@/hooks/useAutoRefresh";
 
 const Dashboard = () => {
-  // Auto refresh market data every 60 seconds
+  // Auto refresh market data every 30 seconds without page reload
   useAutoRefresh({
-    interval: 60000,
+    interval: 30000,
     enabled: true,
     onRefresh: () => {
-      // Trigger a page refresh to get latest data
-      window.location.reload();
+      // Components will handle their own data refresh
+      // No page reload needed
     }
   });
 
+
   return (
-    <div className="min-h-screen bg-background">
-      <Navbar />
-      
-      <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 space-y-8 animate-fade-in">
+        <div className="min-h-screen bg-background">
+          <Navbar />
+          
+            <main className="mx-auto max-w-7xl px-4 py-8 pb-20 md:pb-8 sm:px-6 lg:px-8 space-y-8 animate-fade-in">
         {/* Market Ticker */}
         <section>
           <MarketTicker />
-        </section>
-
-        {/* Investment Summary */}
-        <section>
-          <InvestmentSummary />
         </section>
 
         {/* Main Content Grid */}
@@ -41,9 +36,9 @@ const Dashboard = () => {
             <MostTraded />
           </div>
 
-          {/* Right Column - Products & Tools Sidebar */}
+          {/* Right Column - Leaderboard Sidebar */}
           <div className="lg:col-span-1">
-            <ProductionTools />
+            <Leaderboard />
           </div>
         </div>
       </main>

@@ -20,7 +20,7 @@ const TopMovers = () => {
   const navigate = useNavigate();
   const [gainers, setGainers] = useState<StockMover[]>([]);
   const [losers, setLosers] = useState<StockMover[]>([]);
-  const [volumeShockers, setVolumeShockers] = useState<StockMover[]>([]);
+  // const [volumeShockers, setVolumeShockers] = useState<StockMover[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(false);
 
@@ -41,9 +41,9 @@ const TopMovers = () => {
           volume: String(item.totalTradedVolume || item.volume || '—'),
         });
 
-        setGainers((gainersRes.data || []).map(mapItem));
-        setLosers((losersRes.data || []).map(mapItem));
-        setVolumeShockers([]);
+        setGainers((gainersRes.data || gainersRes || []).map(mapItem));
+        setLosers((losersRes.data || losersRes || []).map(mapItem));
+        // setVolumeShockers([]);
         setIsLoading(false);
       } catch (err) {
         setError(true);
@@ -108,10 +108,10 @@ const TopMovers = () => {
       </CardHeader>
       <CardContent>
         <Tabs defaultValue="gainers" className="w-full">
-          <TabsList className="grid w-full max-w-md grid-cols-3">
+          <TabsList className="grid w-full max-w-md grid-cols-2">
             <TabsTrigger value="gainers">Gainers</TabsTrigger>
             <TabsTrigger value="losers">Losers</TabsTrigger>
-            <TabsTrigger value="volume">Volume Shockers</TabsTrigger>
+            {/* <TabsTrigger value="volume">Volume Shockers</TabsTrigger> */}
           </TabsList>
           
           <TabsContent value="gainers" className="mt-6">
@@ -122,9 +122,9 @@ const TopMovers = () => {
             {renderStockList(losers)}
           </TabsContent>
           
-          <TabsContent value="volume" className="mt-6">
+          {/* <TabsContent value="volume" className="mt-6">
             {renderStockList(volumeShockers)}
-          </TabsContent>
+          </TabsContent> */}
         </Tabs>
       </CardContent>
     </Card>

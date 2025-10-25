@@ -14,9 +14,10 @@ export default defineConfig(({ mode }) => {
       port: 3000,
       proxy: {
         "/api": {
-          target: env.VITE_API_URL, // use loaded env variable
+          target: 'http://localhost:4000',
           changeOrigin: true,
           secure: false,
+          rewrite: (path) => path.replace(/^\/api/, '/api'),
         },
       },
     },

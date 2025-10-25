@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Eye, EyeOff, Loader2, TrendingUp } from 'lucide-react';
 import { signup } from '@/services/authService';
 import { useToast } from '@/hooks/use-toast';
@@ -12,6 +13,9 @@ const Register = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [mobileNumber, setMobileNumber] = useState('');
+  const [dateOfBirth, setDateOfBirth] = useState('');
+  const [gender, setGender] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -46,6 +50,54 @@ const Register = () => {
       return false;
     }
 
+    if (!mobileNumber.trim()) {
+      toast({
+        variant: 'destructive',
+        title: 'Mobile number required',
+        description: 'Please enter your mobile number',
+      });
+      return false;
+    }
+
+    if (!/^[6-9]\d{9}$/.test(mobileNumber)) {
+      toast({
+        variant: 'destructive',
+        title: 'Invalid mobile number',
+        description: 'Please enter a valid 10-digit mobile number',
+      });
+      return false;
+    }
+
+    if (!dateOfBirth) {
+      toast({
+        variant: 'destructive',
+        title: 'Date of birth required',
+        description: 'Please select your date of birth',
+      });
+      return false;
+    }
+
+    const dob = new Date(dateOfBirth);
+    const today = new Date();
+    const age = today.getFullYear() - dob.getFullYear();
+    if (age < 18 || age > 100) {
+      toast({
+        variant: 'destructive',
+        title: 'Invalid age',
+        description: 'You must be between 18 and 100 years old',
+      });
+      return false;
+    }
+
+    if (!gender) {
+      toast({
+        variant: 'destructive',
+        title: 'Gender required',
+        description: 'Please select your gender',
+      });
+      return false;
+    }
+
     if (password.length < 6) {
       toast({
         variant: 'destructive',
@@ -75,14 +127,22 @@ const Register = () => {
     setIsLoading(true);
 
     try {
-      await signup({ name, email, password });
+      await signup({ 
+        name, 
+        email, 
+        password, 
+        mobileNumber, 
+        dateOfBirth, 
+        gender 
+      });
       
       toast({
         title: 'Account created successfully',
-        description: 'Please sign in to continue',
+        description: 'Welcome to Campus Exchange! Redirecting to dashboard...',
       });
 
-      navigate('/login');
+      // Redirect directly to dashboard after successful registration
+      navigate('/dashboard');
     } catch (error) {
       toast({
         variant: 'destructive',
@@ -134,6 +194,45 @@ const Register = () => {
                 disabled={isLoading}
                 required
               />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="mobile">Mobile Number</Label>
+              <Input
+                id="mobile"
+                type="tel"
+                placeholder="9876543210"
+                value={mobileNumber}
+                onChange={(e) => setMobileNumber(e.target.value)}
+                disabled={isLoading}
+                required
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="dob">Date of Birth</Label>
+              <Input
+                id="dob"
+                type="date"
+                value={dateOfBirth}
+                onChange={(e) => setDateOfBirth(e.target.value)}
+                disabled={isLoading}
+                required
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="gender">Gender</Label>
+              <Select value={gender} onValueChange={setGender} disabled={isLoading}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select gender" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="male">Male</SelectItem>
+                  <SelectItem value="female">Female</SelectItem>
+                  <SelectItem value="other">Other</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
             <div className="space-y-2">

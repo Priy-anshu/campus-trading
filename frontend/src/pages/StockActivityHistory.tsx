@@ -37,7 +37,7 @@ const StockActivityHistory = () => {
         setOrders([]);
         setError(false);
       } catch (err) {
-        console.error("Failed to fetch orders:", err);
+        // Silently handle errors
         setError(true);
       } finally {
         setIsLoading(false);
@@ -193,7 +193,7 @@ export default StockActivityHistory;
         
 //         setOrders(Array.isArray(data) ? data : []);
 //       } catch (err) {
-//         console.error("Failed to fetch orders:", err);
+//         // Silently handle errors
 //         setError("Failed to load order history. Please try again.");
 //         setOrders([]);
 //       } finally {

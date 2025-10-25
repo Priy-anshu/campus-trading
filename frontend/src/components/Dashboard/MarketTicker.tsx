@@ -1,76 +1,303 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { TrendingUp, TrendingDown } from "lucide-react";
 import { ENDPOINTS, apiClient } from "@/api/config";
 import Loader from "./Loader";
 import ErrorCard from "./ErrorCard";
 
-interface IndexData {
-  name: string;
-  value: number;
+interface StockData {
+  symbol: string;
+  lastPrice: number;
   change: number;
-  changePercent: number;
+  pChange: number;
 }
 
 const MarketTicker = () => {
-  const [indexes, setIndexes] = useState<IndexData[]>([]);
+  const [stocks, setStocks] = useState<StockData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(false);
+  const animationRef = useRef<HTMLDivElement>(null);
+  const stocksRef = useRef<StockData[]>([]);
 
+  // Function to get or create persistent animation start time
+  const getAnimationStartTime = () => {
+    const storageKey = 'marketTickerStartTime';
+    const sessionKey = 'marketTickerSessionTime';
+    
+    // Check if we have a global start time (survives HMR)
+    if ((window as any).__marketTickerStartTime) {
+      return (window as any).__marketTickerStartTime;
+    }
+    
+    // First check sessionStorage (survives HMR but not full page refresh)
+    const sessionStored = sessionStorage.getItem(sessionKey);
+    if (sessionStored) {
+      const startTime = parseInt(sessionStored);
+      (window as any).__marketTickerStartTime = startTime;
+      return startTime;
+    }
+    
+    // Then check localStorage (survives full page refresh)
+    const stored = localStorage.getItem(storageKey);
+    if (stored) {
+      const startTime = parseInt(stored);
+      // Store in sessionStorage and global for HMR resilience
+      sessionStorage.setItem(sessionKey, startTime.toString());
+      (window as any).__marketTickerStartTime = startTime;
+      return startTime;
+    }
+    
+    // Create new start time
+    const now = Date.now();
+    localStorage.setItem(storageKey, now.toString());
+    sessionStorage.setItem(sessionKey, now.toString());
+    (window as any).__marketTickerStartTime = now;
+    return now;
+  };
+
+  // Function to set animation position based on elapsed time
+  const setAnimationPosition = () => {
+    if (animationRef.current) {
+      const startTime = getAnimationStartTime();
+      const elapsed = Date.now() - startTime;
+      
+      // Different animation speeds for mobile vs desktop
+      const isMobile = window.innerWidth < 768; // md breakpoint
+      
+      // Try to calculate optimal duration based on stock count
+      let animationDuration = 600000; // Default: 10 minutes fallback
+      let maxDistance = isMobile ? 7500 : 2000; // Default distances
+      
+      if (stocks.length > 0) {
+        try {
+          // Calculate the exact distance needed to show all stocks
+          const stockCardWidth = 200; // min-w-[200px] from CSS
+          const gap = 16; // gap-4 = 16px
+          const totalStockWidth = stocks.length * (stockCardWidth + gap);
+          const containerWidth = window.innerWidth;
+          
+          // Calculate how much distance we need to cover to show all stocks
+          const totalDistanceNeeded = totalStockWidth + containerWidth;
+          
+          // Calculate duration based on speed preference
+          const mobileSpeed = 30; // pixels per second for mobile
+          const desktopSpeed = 15; // pixels per second for desktop
+          const speed = isMobile ? mobileSpeed : desktopSpeed;
+          
+          // Calculate duration needed to show all stocks at the desired speed
+          const calculatedDuration = (totalDistanceNeeded / speed) * 1000; // convert to milliseconds
+          
+          // Use calculated duration if it's reasonable (between 2 minutes and 15 minutes)
+          const minDuration = 120000; // 2 minutes
+          const maxDuration = 900000; // 15 minutes
+          
+          if (calculatedDuration >= minDuration && calculatedDuration <= maxDuration) {
+            animationDuration = calculatedDuration;
+            maxDistance = totalDistanceNeeded;
+            console.log(`Using calculated duration: ${Math.round(animationDuration/1000)}s for ${stocks.length} stocks`);
+          } else {
+            console.log(`Using fallback duration: 10 minutes (calculated: ${Math.round(calculatedDuration/1000)}s was outside reasonable range)`);
+          }
+        } catch (error) {
+          console.log('Using fallback duration: 10 minutes (calculation failed)');
+        }
+      }
+      
+      const progress = (elapsed % animationDuration) / animationDuration;
+      const translateX = -progress * maxDistance;
+      animationRef.current.style.transform = `translateX(${translateX}%)`;
+    }
+  };
+
+  // Function to reset animation to start from NIFTY 200
+  const resetAnimationToStart = () => {
+    const now = Date.now();
+    localStorage.setItem('marketTickerStartTime', now.toString());
+    sessionStorage.setItem('marketTickerSessionTime', now.toString());
+    (window as any).__marketTickerStartTime = now;
+    
+    if (animationRef.current) {
+      animationRef.current.style.transform = 'translateX(0%)';
+    }
+  };
+
+  // Initial data load (only runs once)
   useEffect(() => {
-    const fetchIndexes = async () => {
+    const fetchStocks = async () => {
       try {
-        // Use losers as a simple ticker proxy or use allStocks to compute simple index
-        const { data } = await apiClient.get(ENDPOINTS.allStocks);
-        const sample = (data || []).slice(0, 5);
-        const mapped: IndexData[] = sample.map((s: any) => ({
-          name: s.symbol || 'INDEX',
-          value: Number(s.lastPrice || s.ltp || 0),
-          change: Number(s.change || 0),
-          changePercent: Number(s.pChange || 0),
-        }));
-        setIndexes(mapped);
+        const response = await apiClient.get(ENDPOINTS.allStocks);
+        
+        // Handle different response structures
+        let allStocks = [];
+        if (response.data && Array.isArray(response.data)) {
+          allStocks = response.data;
+        } else if (response.data && response.data.data && Array.isArray(response.data.data)) {
+          allStocks = response.data.data;
+        } else if (response.data && response.data.success && Array.isArray(response.data.data)) {
+          allStocks = response.data.data;
+        } else {
+          throw new Error('Invalid API response structure');
+        }
+        
+        // Use all stocks instead of limiting to 10
+        const finalStocks = allStocks;
+        
+        // Set stocks on initial load
+        setStocks(finalStocks);
         setIsLoading(false);
+        
+        // Don't reset animation on navigation - let it continue from stored position
       } catch (err) {
         setError(true);
         setIsLoading(false);
       }
     };
 
-    fetchIndexes();
+    fetchStocks();
+  }, []); // Empty dependency array - only runs once
+
+  // Periodic refresh to update stock values without affecting animation
+  useEffect(() => {
+    const interval = setInterval(async () => {
+      try {
+        const response = await apiClient.get(ENDPOINTS.allStocks);
+        
+        let allStocks = [];
+        if (response.data && Array.isArray(response.data)) {
+          allStocks = response.data;
+        } else if (response.data && response.data.data && Array.isArray(response.data.data)) {
+          allStocks = response.data.data;
+        } else if (response.data && response.data.success && Array.isArray(response.data.data)) {
+          allStocks = response.data.data;
+        }
+
+        if (allStocks.length > 0) {
+          // Update stocks in ref without triggering re-render
+          stocksRef.current = allStocks;
+          
+          // Update the DOM directly to show new prices without re-rendering
+          if (animationRef.current) {
+            const stockElements = animationRef.current.querySelectorAll('[data-stock-symbol]');
+            stockElements.forEach((element) => {
+              const symbol = element.getAttribute('data-stock-symbol');
+              const stock = allStocks.find(s => s.symbol === symbol);
+              if (stock) {
+                const priceElement = element.querySelector('[data-price]');
+                const changeElement = element.querySelector('[data-change]');
+                const pChangeElement = element.querySelector('[data-pchange]');
+                
+                if (priceElement) {
+                  priceElement.textContent = `₹${stock.lastPrice.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`;
+                }
+                if (changeElement) {
+                  changeElement.textContent = `${stock.pChange.toFixed(2)}%`;
+                  changeElement.className = `text-sm font-medium ${stock.change >= 0 ? 'text-green-600' : 'text-red-600'}`;
+                }
+                if (pChangeElement) {
+                  pChangeElement.className = `flex items-center gap-1 ${stock.change >= 0 ? 'text-green-600' : 'text-red-600'}`;
+                }
+              }
+            });
+          }
+        }
+      } catch (err) {
+        // Silently handle refresh errors
+      }
+    }, 60000); // Refresh every 1 minute
+
+    return () => clearInterval(interval);
+  }, []); // Empty dependency array - runs independently
+
+  // Set initial animation position and start animation (independent of stocks data)
+  useEffect(() => {
+    // Set initial position immediately
+    setAnimationPosition();
+    
+    // Start the animation loop
+    const animationInterval = setInterval(() => {
+      setAnimationPosition();
+    }, 100); // Update every 100ms for smooth animation
+
+    return () => clearInterval(animationInterval);
+  }, []); // Empty dependency array - animation runs independently
+
+  // Cleanup storage on component unmount (optional)
+  useEffect(() => {
+    return () => {
+      // Uncomment the lines below if you want to reset animation on component unmount
+      // localStorage.removeItem('marketTickerStartTime');
+      // sessionStorage.removeItem('marketTickerSessionTime');
+      // delete (window as any).__marketTickerStartTime;
+    };
   }, []);
 
   if (isLoading) return <Loader />;
   if (error) return <ErrorCard message="Stock data is temporarily unavailable. Please wait for one minute and try again." />;
 
   return (
-    <div className="overflow-x-auto pb-2">
-      <div className="flex gap-4 min-w-max">
-        {indexes.map((index) => {
-          const isPositive = index.change >= 0;
-          return (
-            <div
-              key={index.name}
-              className="flex items-center gap-3 rounded-xl bg-card px-6 py-4 shadow-sm border border-border min-w-[200px] hover:shadow-md transition-all"
-            >
-              <div className="flex-1">
-                <p className="text-xs font-medium text-muted-foreground">{index.name}</p>
-                <p className="text-lg font-semibold text-foreground mt-1">
-                  {index.value.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
-                </p>
-              </div>
-              <div className={`flex items-center gap-1 ${isPositive ? 'text-success' : 'text-destructive'}`}>
-                {isPositive ? (
-                  <TrendingUp className="h-4 w-4" />
-                ) : (
-                  <TrendingDown className="h-4 w-4" />
-                )}
-                <span className="text-sm font-medium">
-                  {isPositive ? '+' : ''}{index.changePercent.toFixed(2)}%
-                </span>
-              </div>
+    <div className="relative overflow-hidden bg-gradient-to-r from-background via-card/50 to-background">
+      {/* Sliding Animation Container */}
+      <div ref={animationRef} className="flex transition-none">
+            {/* First set of stocks */}
+            <div className="flex gap-4 min-w-max">
+              {stocks.map((stock, index) => {
+                const isPositive = stock.change >= 0;
+                return (
+                  <div
+                    key={`first-${stock.symbol}-${index}`}
+                    data-stock-symbol={stock.symbol}
+                    className="flex items-center gap-3 rounded-xl bg-card px-6 py-4 shadow-sm border border-border min-w-[200px] hover:shadow-md transition-all backdrop-blur-sm"
+                  >
+                    <div className="flex-1">
+                      <p className="text-xs font-medium text-muted-foreground">{stock.symbol}</p>
+                      <p data-price className="text-lg font-semibold text-foreground mt-1">
+                        ₹{stock.lastPrice.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                      </p>
+                    </div>
+                    <div data-pchange className={`flex items-center gap-1 ${isPositive ? 'text-green-600' : 'text-red-600'}`}>
+                      {isPositive ? (
+                        <TrendingUp className="h-4 w-4" />
+                      ) : (
+                        <TrendingDown className="h-4 w-4" />
+                      )}
+                      <span data-change className="text-sm font-medium">
+                        {isPositive ? '+' : ''}{stock.pChange.toFixed(2)}%
+                      </span>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
-          );
-        })}
+        
+        {/* Duplicate set for seamless scrolling */}
+        <div className="flex gap-4 min-w-max ml-8">
+          {stocks.map((stock, index) => {
+            const isPositive = stock.change >= 0;
+            return (
+              <div
+                key={`second-${stock.symbol}-${index}`}
+                data-stock-symbol={stock.symbol}
+                className="flex items-center gap-3 rounded-xl bg-card px-6 py-4 shadow-sm border border-border min-w-[200px] hover:shadow-md transition-all backdrop-blur-sm"
+              >
+                <div className="flex-1">
+                  <p className="text-xs font-medium text-muted-foreground">{stock.symbol}</p>
+                  <p data-price className="text-lg font-semibold text-foreground mt-1">
+                    ₹{stock.lastPrice.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                  </p>
+                </div>
+                <div data-pchange className={`flex items-center gap-1 ${isPositive ? 'text-green-600' : 'text-red-600'}`}>
+                  {isPositive ? (
+                    <TrendingUp className="h-4 w-4" />
+                  ) : (
+                    <TrendingDown className="h-4 w-4" />
+                  )}
+                  <span data-change className="text-sm font-medium">
+                    {isPositive ? '+' : ''}{stock.pChange.toFixed(2)}%
+                  </span>
+                </div>
+              </div>
+            );
+          })}
+        </div>
       </div>
     </div>
   );

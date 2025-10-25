@@ -29,9 +29,20 @@ const MostTraded = () => {
 
     const fetchMostTraded = async () => {
       try {
-        const { data } = await apiClient.get(ENDPOINTS.allStocks);
+        const response = await apiClient.get(ENDPOINTS.allStocks);
+        
+        // Handle different response structures
+        let stockData = [];
+        if (response.data && response.data.success && Array.isArray(response.data.data)) {
+          stockData = response.data.data;
+        } else if (Array.isArray(response.data)) {
+          stockData = response.data;
+        } else {
+          throw new Error('Invalid API response structure');
+        }
+        
         // Choose "most traded" by volume; map fields consistently
-        const normalized = (Array.isArray(data) ? data : []).map((it: any) => ({
+        const normalized = stockData.map((it: any) => ({
           symbol: it.symbol,
           companyName: it.companyName || it.name || it.symbol,
           logoUrl: "",
@@ -39,21 +50,31 @@ const MostTraded = () => {
           changePercent: toNumber(it.changePercent ?? it.pChange),
           volume: toNumber(it.totalTradedVolume ?? it.volume),
         }));
+        
         const topByVolume = normalized
-          .filter((s: any) => s.symbol)
+          .filter((s: any) => s.symbol && s.volume > 0)
           .sort((a: any, b: any) => b.volume - a.volume)
           .slice(0, 8)
           .map(({ volume, ...rest }: any) => rest);
 
         setStocks(topByVolume);
         setIsLoading(false);
+        setError(false);
       } catch (err) {
         setError(true);
         setIsLoading(false);
       }
     };
 
+    // Initial fetch
     fetchMostTraded();
+
+    // Auto-refresh every 1 minute (60 seconds)
+    const interval = setInterval(() => {
+      fetchMostTraded();
+    }, 60000);
+
+    return () => clearInterval(interval);
   }, []);
 
   if (isLoading) return <Loader />;
@@ -62,45 +83,55 @@ const MostTraded = () => {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Most Traded Stocks</CardTitle>
+        <CardTitle className="flex items-center gap-2">
+          📈 Most Traded Stocks
+          <span className="text-sm text-muted-foreground">(by volume)</span>
+        </CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {stocks.map((stock) => {
-            const isPositive = stock.changePercent >= 0;
-            return (
-              <div
-                key={stock.symbol}
-                onClick={() => navigate(`/stock/${stock.symbol}`)}
-                className="p-4 rounded-lg border border-border hover:shadow-md transition-all hover:scale-105 cursor-pointer bg-card"
-              >
-                <div className="flex items-start justify-between mb-3">
-                  <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
-                    <span className="text-sm font-bold text-primary">{stock.symbol[0]}</span>
+        {stocks.length === 0 ? (
+          <div className="text-center py-8">
+            <p className="text-muted-foreground">No trading volume data available</p>
+            <p className="text-sm text-muted-foreground mt-2">Stocks will appear here based on trading volume</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {stocks.map((stock) => {
+              const isPositive = stock.changePercent >= 0;
+              return (
+                <div
+                  key={stock.symbol}
+                  onClick={() => navigate(`/stock/${stock.symbol}`)}
+                  className="p-4 rounded-lg border border-border hover:shadow-md transition-all hover:scale-105 cursor-pointer bg-card"
+                >
+                  <div className="flex items-start justify-between mb-3">
+                    <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+                      <span className="text-sm font-bold text-primary">{stock.symbol[0]}</span>
+                    </div>
+                    <div className={`flex items-center gap-1 ${isPositive ? 'text-success' : 'text-destructive'}`}>
+                      {isPositive ? (
+                        <TrendingUp className="h-3 w-3" />
+                      ) : (
+                        <TrendingDown className="h-3 w-3" />
+                      )}
+                      <span className="text-xs font-medium">
+                        {isPositive ? '+' : ''}{stock.changePercent.toFixed(2)}%
+                      </span>
+                    </div>
                   </div>
-                  <div className={`flex items-center gap-1 ${isPositive ? 'text-success' : 'text-destructive'}`}>
-                    {isPositive ? (
-                      <TrendingUp className="h-3 w-3" />
-                    ) : (
-                      <TrendingDown className="h-3 w-3" />
-                    )}
-                    <span className="text-xs font-medium">
-                      {isPositive ? '+' : ''}{stock.changePercent.toFixed(2)}%
-                    </span>
+                  
+                  <div>
+                    <p className="font-semibold text-foreground mb-1">{stock.symbol}</p>
+                    <p className="text-xs text-muted-foreground mb-2 line-clamp-1">{stock.companyName}</p>
+                    <p className="text-lg font-bold text-foreground">
+                      ₹{stock.price.toLocaleString('en-IN')}
+                    </p>
                   </div>
                 </div>
-                
-                <div>
-                  <p className="font-semibold text-foreground mb-1">{stock.symbol}</p>
-                  <p className="text-xs text-muted-foreground mb-2 line-clamp-1">{stock.companyName}</p>
-                  <p className="text-lg font-bold text-foreground">
-                    ₹{stock.price.toLocaleString('en-IN')}
-                  </p>
-                </div>
-              </div>
-            );
-          })}
-        </div>
+              );
+            })}
+          </div>
+        )}
       </CardContent>
     </Card>
   );

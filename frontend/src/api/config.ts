@@ -5,31 +5,39 @@
  * Currently using mock data, but ready for backend integration.
  */
 
-// Base API URL - proxied by Vite to backend at http://localhost:5000
-export const API_BASE = import.meta.env.VITE_API_URL;
+// Base API URL - proxied by Vite to backend at http://localhost:4000
+export const API_BASE = import.meta.env.VITE_API_URL || '';
 
 // API Endpoints
 export const ENDPOINTS = {
   // Auth endpoints
-  register: `${API_BASE}/auth/register`,
-  login: `${API_BASE}/auth/login`,
-  me: `${API_BASE}/auth/user`,
+  register: `/auth/register`,
+  login: `/auth/login`,
+  me: `/auth/user`,
 
   // Portfolio endpoints
-  portfolio: `${API_BASE}/portfolio`,
-  buy: `${API_BASE}/portfolio/buy`,
-  sell: `${API_BASE}/portfolio/sell`,
-  fund: `${API_BASE}/portfolio/fund`,
+  portfolio: `/portfolio`,
+  buy: `/portfolio/buy`,
+  sell: `/portfolio/sell`,
+  fund: `/portfolio/fund`,
 
   // Stock data endpoints
-  gainers: `${API_BASE}/stocks/gainers`,
-  losers: `${API_BASE}/stocks/losers`,
-  allStocks: `${API_BASE}/stocks/all`,
-  stockSearch: `${API_BASE}/stocks/search`,
+  gainers: `/stocks/gainers`,
+  losers: `/stocks/losers`,
+  allStocks: `/stocks/all`,
+  stockSearch: `/stocks/search`,
+  stockPrice: `/stocks/price`,
 
   // Order endpoints
-  orders: `${API_BASE}/orders`,
-  orderStats: `${API_BASE}/orders/stats`,
+  orders: `/orders`,
+  orderStats: `/orders/stats`,
+
+  // Leaderboard endpoints
+  leaderboard: `/leaderboard`,
+  leaderboardRank: `/leaderboard/rank`,
+
+  // Auth endpoints for profile
+  changePassword: `/auth/change-password`,
 };
 
 // API Headers
@@ -42,7 +50,7 @@ export const getHeaders = () => ({
 import axios from 'axios';
 
 export const apiClient = axios.create({
-  baseURL: API_BASE,
+  baseURL: API_BASE || '/api',
 });
 
 apiClient.interceptors.request.use((config) => {
