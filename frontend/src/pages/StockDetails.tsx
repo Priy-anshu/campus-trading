@@ -15,21 +15,59 @@ import { ENDPOINTS, apiClient } from "@/api/config";
 import { useAutoRefresh } from "@/hooks/useAutoRefresh";
 import { useToast } from "@/hooks/use-toast";
 
-// Removed mock data; the page will render only server data.
+/**
+ * StockDetails Page Component
+ * 
+ * A comprehensive stock details page that displays:
+ * - Stock overview with current price, change, and company information
+ * - Interactive price chart with historical data
+ * - Trading panel for buying/selling stocks
+ * - Watchlist management functionality
+ * - Auto-refresh capabilities for real-time data
+ * 
+ * Features:
+ * - Real-time stock data fetching
+ * - Error handling and loading states
+ * - Watchlist integration
+ * - Responsive design for mobile and desktop
+ * - Data refresh after successful trades
+ */
 
 const StockDetails = () => {
+  // Get stock symbol from URL parameters
   const { symbol } = useParams<{ symbol: string }>();
+  
+  // Navigation hook for programmatic routing
   const navigate = useNavigate();
+  
+  // Toast notification hook for user feedback
   const { toast } = useToast();
+  
+  // State for stock data fetched from API
   const [stockData, setStockData] = useState<any | null>(null);
+  
+  // Loading state for initial data fetch
   const [isLoading, setIsLoading] = useState(true);
+  
+  // Error state for handling API failures
   const [error, setError] = useState<string | null>(null);
+  
+  // Loading state for manual refresh operations
   const [isRefreshing, setIsRefreshing] = useState(false);
+  
+  // State for user's watchlists (stored in localStorage)
   const [watchlists, setWatchlists] = useState<any[]>([]);
+  
+  // State for currently selected watchlist in the add-to-watchlist dialog
   const [selectedWatchlist, setSelectedWatchlist] = useState<string>('');
+  
+  // State to control watchlist dialog visibility
   const [showWatchlistDialog, setShowWatchlistDialog] = useState(false);
 
-  // Load watchlists from localStorage
+  /**
+   * Load user's watchlists from localStorage on component mount
+   * Sets the first watchlist as selected by default
+   */
   useEffect(() => {
     const savedWatchlists = localStorage.getItem('watchlists');
     if (savedWatchlists) {
@@ -41,6 +79,12 @@ const StockDetails = () => {
     }
   }, []);
 
+  /**
+   * Utility function to safely convert string/number values to numbers
+   * Handles commas, whitespace, and invalid values gracefully
+   * @param {any} value - The value to convert to number
+   * @returns {number} The converted number or 0 if invalid
+   */
   const toNumber = (value: any) => {
     if (value === null || value === undefined) return 0;
     const normalized = String(value).replace(/,/g, "").trim();
@@ -48,14 +92,19 @@ const StockDetails = () => {
     return Number.isNaN(num) ? 0 : num;
   };
 
+  /**
+   * Add the current stock to the selected watchlist
+   * Validates that the stock isn't already in the watchlist
+   * Updates localStorage and shows success/error feedback
+   */
   const addToWatchlist = () => {
     if (!stockData || !selectedWatchlist) return;
 
-    // Find the selected watchlist
+    // Find the selected watchlist by ID
     const targetWatchlist = watchlists.find(w => w.id === selectedWatchlist);
     if (!targetWatchlist) return;
     
-    // Check if stock is already in the watchlist
+    // Check if stock is already in the watchlist to prevent duplicates
     const stockExists = targetWatchlist.stocks.some((stock: any) => stock.symbol === stockData.symbol);
     
     if (stockExists) {
@@ -67,7 +116,7 @@ const StockDetails = () => {
       return;
     }
 
-    // Add stock to watchlist
+    // Create stock object with normalized data for watchlist storage
     const stockToAdd = {
       symbol: stockData.symbol,
       lastPrice: toNumber(stockData.price ?? stockData.lastPrice ?? stockData.ltp),
@@ -76,53 +125,78 @@ const StockDetails = () => {
       totalTradedVolume: toNumber(stockData.totalTradedVolume ?? stockData.volume ?? 0)
     };
 
+    // Add stock to the target watchlist
     targetWatchlist.stocks.push(stockToAdd);
     
-    // Update state and save to localStorage
+    // Update state and persist to localStorage
     const updatedWatchlists = watchlists.map(w => 
       w.id === selectedWatchlist ? targetWatchlist : w
     );
     setWatchlists(updatedWatchlists);
     localStorage.setItem('watchlists', JSON.stringify(updatedWatchlists));
     
+    // Show success notification
     toast({
       title: "Added to watchlist",
       description: `${stockData.symbol} has been added to ${targetWatchlist.name}.`,
       variant: "default",
     });
     
+    // Close the watchlist dialog
     setShowWatchlistDialog(false);
   };
 
+  /**
+   * Fetch stock data from the API
+   * Handles both initial load and refresh scenarios
+   * @param {boolean} isRefresh - Whether this is a refresh operation (affects loading state)
+   */
   const fetchStockData = async (isRefresh = false) => {
+    // Set appropriate loading state based on operation type
     if (isRefresh) {
       setIsRefreshing(true);
     } else {
       setIsLoading(true);
     }
+    
+    // Clear any previous errors
     setError(null);
+    
     try {
+      // Fetch stock data from API using the symbol from URL params
       const { data } = await apiClient.get(ENDPOINTS.stockSearch, { params: { symbol } });
       const item = (data && data[0]) || null;
+      
+      // Validate that we received valid stock data
       if (!item) throw new Error('Not found');
+      
+      // Update state with fetched stock data
       setStockData(item);
     } catch (err) {
+      // Set user-friendly error message for API failures
       setError("Stock data is temporarily unavailable. Please wait for one minute and try again.");
     } finally {
+      // Always reset loading states
       setIsLoading(false);
       setIsRefreshing(false);
     }
   };
 
+  /**
+   * Fetch stock data when component mounts or symbol changes
+   */
   useEffect(() => {
     fetchStockData();
   }, [symbol]);
 
-  // Auto refresh every 30 seconds
+  /**
+   * Auto-refresh configuration for real-time data updates
+   * Refreshes stock data every 30 seconds when data is available and no errors exist
+   */
   useAutoRefresh({
-    interval: 30000,
-    enabled: !!stockData && !error,
-    onRefresh: () => fetchStockData(true)
+    interval: 30000, // 30 seconds
+    enabled: !!stockData && !error, // Only refresh when we have data and no errors
+    onRefresh: () => fetchStockData(true) // Use refresh mode for auto-refresh
   });
 
   if (isLoading) {
@@ -235,6 +309,14 @@ const StockDetails = () => {
             <TradePanel
               symbol={stockData.symbol || symbol || '—'}
               currentPrice={toNumber(stockData.price ?? stockData.lastPrice ?? stockData.ltp)}
+              onTradeSuccess={() => {
+                // Refresh stock data and portfolio data after successful trade
+                fetchStockData(true);
+                // Also refresh portfolio data by triggering a page reload
+                setTimeout(() => {
+                  window.location.reload();
+                }, 1500);
+              }}
             />
           </div>
         </div>

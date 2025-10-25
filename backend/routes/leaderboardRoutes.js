@@ -40,7 +40,7 @@ function needsMonthlyReset(lastReset) {
 }
 
 // Get leaderboard data
-router.get('/leaderboard', authRequired, async (req, res) => {
+router.get('/leaderboard', async (req, res) => {
   try {
     const { period = 'overall' } = req.query; // 'day', 'month', 'overall'
     const { limit = 100 } = req.query;

@@ -14,7 +14,6 @@ class EarningsCache {
    */
   async initialize() {
     try {
-      console.log('🔄 Initializing earnings cache...');
       
       // Load all users and their current earnings
       const users = await User.find({}).select('_id name dailyProfit monthlyProfit totalProfit lastDailyReset lastMonthlyReset');
@@ -35,7 +34,6 @@ class EarningsCache {
       }
       
       this.isInitialized = true;
-      console.log(`✅ Earnings cache initialized with ${this.cache.size} users`);
       
       // Start the 14-minute update interval
       this.startUpdateInterval();
@@ -67,7 +65,6 @@ class EarningsCache {
       // Sum up all daily profits for the month
       const monthlyEarning = dailyProfits.reduce((sum, record) => sum + (record.profit || 0), 0);
       
-      console.log(`📊 Calculated monthly earnings for user ${userId}: ${monthlyEarning} (from ${dailyProfits.length} daily records)`);
       return monthlyEarning;
       
     } catch (error) {
@@ -89,7 +86,6 @@ class EarningsCache {
       await this.updateDatabase();
     }, 14 * 60 * 1000);
     
-    console.log('⏰ Started 14-minute earnings update interval');
   }
 
   /**
@@ -126,7 +122,6 @@ class EarningsCache {
     userData.monthlyEarning += amount;
     userData.overallEarning += amount;
 
-    console.log(`💰 Updated earnings for user ${userData.name}: +${amount} (Daily: ${userData.dailyEarning}, Monthly: ${userData.monthlyEarning}, Overall: ${userData.overallEarning})`);
   }
 
   /**
@@ -142,7 +137,6 @@ class EarningsCache {
     const isNewDay = !lastDailyReset || lastDailyReset.toDateString() !== today.toDateString();
 
     if (isNewDay) {
-      console.log(`🔄 Daily reset for user ${userData.name}: ${userData.dailyEarning} → 0`);
       userData.dailyEarning = 0;
       userData.lastDailyReset = today;
     }
@@ -154,7 +148,6 @@ class EarningsCache {
       lastMonthlyReset.getMonth() !== startOfMonth.getMonth();
 
     if (isNewMonth) {
-      console.log(`🔄 Monthly reset for user ${userData.name}: ${userData.monthlyEarning} → 0`);
       userData.monthlyEarning = 0;
       userData.lastMonthlyReset = startOfMonth;
     }
@@ -219,7 +212,6 @@ class EarningsCache {
     }
 
     try {
-      console.log('💾 Updating earnings in database...');
       
       const updatePromises = [];
       
@@ -239,7 +231,6 @@ class EarningsCache {
       }
 
       await Promise.all(updatePromises);
-      console.log(`✅ Updated earnings for ${this.cache.size} users in database`);
       
     } catch (error) {
       console.error('❌ Error updating earnings in database:', error);
@@ -268,7 +259,6 @@ class EarningsCache {
     };
     
     this.cache.set(userId.toString(), userData);
-    console.log(`👤 Added new user to earnings cache: ${name}`);
   }
 
   /**
@@ -278,7 +268,6 @@ class EarningsCache {
     if (this.updateInterval) {
       clearInterval(this.updateInterval);
       this.updateInterval = null;
-      console.log('⏹️ Stopped earnings update interval');
     }
   }
 

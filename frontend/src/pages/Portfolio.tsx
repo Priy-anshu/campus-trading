@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import Navbar from "@/components/Navbar";
 import HoldingsDashboard from "@/components/Holdings/HoldingsDashboard";
-import DailyProfitChart from "@/components/Portfolio/DailyProfitChart";
+// import DailyProfitChart from "@/components/Portfolio/DailyProfitChart"; // Commented out for future use
 import LoadingIndicator from "@/components/LoadingIndicator";
 import { useState } from "react";
 
@@ -28,10 +28,10 @@ const Portfolio = () => {
             <HoldingsDashboard />
           </section>
 
-          {/* Daily Profit/Loss Chart */}
-          <section>
+          {/* Daily Profit/Loss Chart - Commented out for future use */}
+          {/* <section>
             <DailyProfitChart />
-          </section>
+          </section> */}
         </main>
       </div>
     </LoadingIndicator>

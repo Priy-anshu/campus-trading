@@ -1,6 +1,6 @@
-const { sendSuccess, sendError, sendValidationError } = require('../utils/response');
-const { validateNumber, validateRequired } = require('../utils/validation');
-const portfolioService = require('../services/portfolioService');
+import { sendSuccess, sendError, sendValidationError } from '../utils/response.js';
+import { validateNumber, validateRequired } from '../utils/validation.js';
+import portfolioService from '../services/portfolioService.js';
 
 class PortfolioController {
   static async getPortfolio(req, res) {
@@ -114,4 +114,4 @@ class PortfolioController {
   }
 }
 
-module.exports = PortfolioController;
+export default PortfolioController;

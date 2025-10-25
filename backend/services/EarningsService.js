@@ -15,7 +15,6 @@ class EarningsService {
    */
   async initialize() {
     try {
-      console.log('🔄 Initializing comprehensive earnings system...');
       
       // Load all users and create leaderboard entries
       const users = await User.find({});
@@ -26,7 +25,6 @@ class EarningsService {
       }
       
       this.isInitialized = true;
-      console.log(`✅ Earnings system initialized with ${this.cache.size} users`);
       
       // Start 14-minute update interval
       this.startUpdateInterval();
@@ -57,12 +55,10 @@ class EarningsService {
             lastPortfolioValue: await this.calculatePortfolioValue(user._id)
           });
           
-          console.log(`👤 Created leaderboard entry for ${user.name}`);
         } catch (createError) {
           if (createError.code === 11000) {
             // Duplicate key error - entry already exists, fetch it
             leaderboardEntry = await Leaderboard.findOne({ userId: user._id });
-            console.log(`👤 Found existing leaderboard entry for ${user.name}`);
           } else {
             throw createError;
           }
@@ -163,7 +159,6 @@ class EarningsService {
       // Update portfolio value
       userData.currentPortfolioValue = await this.calculatePortfolioValue(userId);
 
-      console.log(`💰 Updated earnings for ${userData.userName}: +${amount} (Day: ${userData.dayEarning}, Month: ${userData.monthEarning}, Overall: ${userData.overallEarning})`);
       
     } catch (error) {
       console.error(`❌ Error updating earnings for user ${userId}:`, error);
@@ -182,7 +177,6 @@ class EarningsService {
       userData.lastDayReset.toISOString().split('T')[0] !== today.toISOString().split('T')[0];
 
     if (isNewDay) {
-      console.log(`🔄 Daily reset for ${userData.userName}: ${userData.dayEarning} → 0`);
       
       // Save yesterday's earnings
       userData.lastDayEarning = userData.dayEarning;
@@ -195,7 +189,6 @@ class EarningsService {
       userData.lastMonthReset.toISOString().split('T')[0] !== startOfMonth.toISOString().split('T')[0];
 
     if (isNewMonth) {
-      console.log(`🔄 Monthly reset for ${userData.userName}: ${userData.monthEarning} → 0`);
       
       // Save last month's earnings
       userData.lastMonthEarning = userData.monthEarning;
@@ -282,7 +275,6 @@ class EarningsService {
       await this.updateAllEarnings();
     }, 14 * 60 * 1000); // 14 minutes
     
-    console.log('⏰ Started 14-minute earnings update interval');
   }
 
   /**
@@ -292,7 +284,6 @@ class EarningsService {
     if (!this.isInitialized) return;
 
     try {
-      console.log('💾 Updating all earnings in database...');
       
       const updatePromises = [];
       
@@ -320,7 +311,6 @@ class EarningsService {
       }
 
       await Promise.all(updatePromises);
-      console.log(`✅ Updated earnings for ${this.cache.size} users in database`);
       
     } catch (error) {
       console.error('❌ Error updating all earnings:', error);
@@ -347,7 +337,6 @@ class EarningsService {
       await this.ensureLeaderboardEntry(user);
       await this.loadUserToCache(userId);
       
-      console.log(`👤 Added new user to earnings system: ${userName}`);
       
     } catch (error) {
       console.error(`❌ Error adding user ${userId}:`, error);
@@ -373,7 +362,6 @@ class EarningsService {
     if (this.updateInterval) {
       clearInterval(this.updateInterval);
       this.updateInterval = null;
-      console.log('⏹️ Stopped earnings update interval');
     }
   }
 }

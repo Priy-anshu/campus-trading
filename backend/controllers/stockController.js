@@ -1,5 +1,5 @@
-const { sendSuccess, sendError } = require('../utils/response');
-const stockService = require('../services/stockService');
+import { sendSuccess, sendError } from '../utils/response.js';
+import stockService from '../services/stockService.js';
 
 class StockController {
   static async getAllStocks(req, res) {
@@ -62,4 +62,4 @@ class StockController {
   }
 }
 
-module.exports = StockController;
+export default StockController;

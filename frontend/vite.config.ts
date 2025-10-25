@@ -12,19 +12,33 @@ export default defineConfig(({ mode }) => {
     server: {
       host: "::",
       port: 3000,
-      proxy: {
+      proxy: mode === "development" ? {
         "/api": {
           target: 'http://localhost:4000',
           changeOrigin: true,
           secure: false,
           rewrite: (path) => path.replace(/^\/api/, '/api'),
         },
-      },
+      } : undefined,
     },
     plugins: [react(), mode === "development" && componentTagger()].filter(Boolean),
     resolve: {
       alias: {
         "@": path.resolve(__dirname, "./src"),
+      },
+    },
+    build: {
+      outDir: 'dist',
+      sourcemap: mode === "development",
+      minify: mode === "production",
+      rollupOptions: {
+        output: {
+          manualChunks: {
+            vendor: ['react', 'react-dom'],
+            router: ['react-router-dom'],
+            ui: ['@radix-ui/react-dialog', '@radix-ui/react-dropdown-menu'],
+          },
+        },
       },
     },
   };

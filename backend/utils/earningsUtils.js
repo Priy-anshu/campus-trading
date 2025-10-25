@@ -12,7 +12,7 @@ import earningsCache from '../services/EarningsCache.js';
 export function updateEarnings(userId, amount) {
   try {
     earningsCache.updateEarnings(userId, amount);
-    console.log(`💰 Earnings updated: User ${userId}, Amount: ${amount}`);
+    // Earnings updated successfully
   } catch (error) {
     console.error('Error updating earnings:', error);
   }
@@ -40,7 +40,7 @@ export function getEarnings(userId) {
 export function addUserToEarnings(userId, name) {
   try {
     earningsCache.addUser(userId, name);
-    console.log(`👤 Added user to earnings system: ${name}`);
+    // User added to earnings system
   } catch (error) {
     console.error('Error adding user to earnings:', error);
   }
@@ -53,7 +53,7 @@ export function addUserToEarnings(userId, name) {
 export async function forceUpdateDatabase() {
   try {
     await earningsCache.forceUpdateDatabase();
-    console.log('💾 Database updated with current earnings cache');
+    // Database updated with current earnings cache
   } catch (error) {
     console.error('Error force updating database:', error);
   }

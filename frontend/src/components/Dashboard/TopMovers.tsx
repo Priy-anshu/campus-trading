@@ -37,7 +37,7 @@ const TopMovers = () => {
           companyName: item.symbol || item.tradingsymbol || '—',
           logoUrl: '',
           price: Number(item.lastPrice || item.ltp || 0),
-          changePercent: Number(item.pChange || item.change || 0),
+          changePercent: Number(item.changePercent || item.pChange || item.change || 0),
           volume: String(item.totalTradedVolume || item.volume || '—'),
         });
 

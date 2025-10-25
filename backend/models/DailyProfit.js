@@ -31,11 +31,10 @@ const dailyProfitSchema = new mongoose.Schema(
   }
 );
 
-// Compound index for efficient queries
-dailyProfitSchema.index({ userId: 1, date: -1 });
+// Indexes for efficient queries
 dailyProfitSchema.index({ date: -1 });
 
-// Ensure one record per user per day
+// Ensure one record per user per day (unique constraint)
 dailyProfitSchema.index({ userId: 1, date: 1 }, { unique: true });
 
 const DailyProfit = mongoose.model('DailyProfit', dailyProfitSchema);

@@ -40,7 +40,7 @@ const Navbar = () => {
   useEffect(() => {
     window.addEventListener('click', (e) => {
       if (!inputRef.current) return;
-      if (!(e.target as HTMLElement).closest('#global-search')) setOpen(false);
+      if (!(e.target as HTMLElement).closest('#global-search') && !(e.target as HTMLElement).closest('#mobile-search')) setOpen(false);
       if (!(e.target as HTMLElement).closest('#user-menu')) setUserMenuOpen(false);
     });
 
@@ -94,6 +94,42 @@ const Navbar = () => {
             <span className="text-xl font-bold text-foreground">Campus Trading</span>
           </Link>
           
+          {/* Mobile Search Bar - Visible only on mobile */}
+          <div className="md:hidden flex-1 max-w-sm ml-4 mr-2">
+            <div id="mobile-search" className="relative">
+              <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+              <input
+                value={query}
+                onChange={(e) => onSearchChange(e.target.value)}
+                placeholder="Search stocks..."
+                className="h-10 w-full rounded-lg border border-input bg-background pl-10 pr-4 text-sm outline-none focus:ring-2 focus:ring-ring focus:border-ring shadow-sm"
+              />
+              {open && (
+                <div className="absolute left-0 top-11 w-full max-w-sm rounded-lg border border-border bg-popover shadow-lg z-50 max-h-80 overflow-y-auto">
+                  {results.length > 0 ? (
+                    results.map((r) => (
+                      <button
+                        key={r.symbol}
+                        onClick={() => goToSymbol(r.symbol)}
+                        className="w-full px-4 py-3 text-left text-sm hover:bg-muted flex items-center justify-between border-b border-border last:border-b-0"
+                      >
+                        <div className="flex flex-col items-start">
+                          <span className="font-medium text-foreground">{r.symbol}</span>
+                          <span className="text-xs text-muted-foreground truncate max-w-32">{r.name}</span>
+                        </div>
+                        <span className="text-sm font-medium text-primary">₹{r.price.toLocaleString('en-IN')}</span>
+                      </button>
+                    ))
+                  ) : (
+                    <div className="px-4 py-3 text-sm text-muted-foreground text-center">
+                      No stocks found
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+          
           {/* Desktop Navigation Links - Hidden on Mobile */}
           <div className="hidden md:flex items-center gap-6">
             <Link 
@@ -143,18 +179,24 @@ const Navbar = () => {
                   className="h-9 w-56 rounded-md border border-input bg-background pl-8 pr-3 text-sm outline-none focus:ring-2 focus:ring-ring"
                 />
               </div>
-              {open && results.length > 0 && (
+              {open && (
                 <div className="absolute left-0 top-10 w-[260px] rounded-md border border-border bg-popover shadow-md z-50">
-                  {results.map((r) => (
-                    <button
-                      key={r.symbol}
-                      onClick={() => goToSymbol(r.symbol)}
-                      className="w-full px-3 py-2 text-left text-sm hover:bg-muted flex items-center justify-between"
-                    >
-                      <span className="truncate mr-2">{r.symbol} — {r.name}</span>
-                      <span className="text-muted-foreground">₹{r.price.toLocaleString('en-IN')}</span>
-                    </button>
-                  ))}
+                  {results.length > 0 ? (
+                    results.map((r) => (
+                      <button
+                        key={r.symbol}
+                        onClick={() => goToSymbol(r.symbol)}
+                        className="w-full px-3 py-2 text-left text-sm hover:bg-muted flex items-center justify-between"
+                      >
+                        <span className="truncate mr-2">{r.symbol} — {r.name}</span>
+                        <span className="text-muted-foreground">₹{r.price.toLocaleString('en-IN')}</span>
+                      </button>
+                    ))
+                  ) : (
+                    <div className="px-3 py-2 text-sm text-muted-foreground text-center">
+                      No stocks found
+                    </div>
+                  )}
                 </div>
               )}
               

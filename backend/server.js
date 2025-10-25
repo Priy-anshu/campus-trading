@@ -2,6 +2,8 @@ import express from 'express';
 import mongoose from 'mongoose';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import helmet from 'helmet';
+import morgan from 'morgan';
 import authRoutes from './routes/authRoutes.js';
 import portfolioRoutes from './routes/portfolioRoutes.js';
 import stockRoutes from './routes/stockRoutes.js';
@@ -19,15 +21,41 @@ dotenv.config();
 
 const app = express();
 
+// Security middleware
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      styleSrc: ["'self'", "'unsafe-inline'"],
+      scriptSrc: ["'self'"],
+      imgSrc: ["'self'", "data:", "https:"],
+    },
+  },
+}));
+
+// Logging middleware - disabled for clean output
+// if (process.env.NODE_ENV === 'production') {
+//   app.use(morgan('combined'));
+// } else {
+//   app.use(morgan('dev'));
+// }
+
 // Determine allowed origins based on environment
 const allowedOrigins = process.env.NODE_ENV === 'production'
-  ? ['https://campus-trading.netlify.app'] // production frontend
-  : ['http://localhost:3000']; // local development frontend
+  ? [
+      'https://campus-trading.netlify.app',
+      'https://campus-trading-app.netlify.app',
+      'https://campus-trading-frontend.netlify.app'
+    ]
+  : ['http://localhost:3000', 'http://127.0.0.1:3000'];
 
 // CORS middleware
 const corsOptions = {
   origin: function (origin, callback) {
-    if (!origin || allowedOrigins.includes(origin)) {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    
+    if (allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
       console.error(`❌ CORS blocked origin: ${origin}`);
@@ -44,11 +72,16 @@ app.use(cors(corsOptions));
 app.options('*', cors(corsOptions));
 
 // Middleware
-app.use(express.json());
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Health check
 app.get('/health', (req, res) => {
-  res.json({ status: 'ok' });
+  res.json({ 
+    status: 'ok', 
+    timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV || 'development'
+  });
 });
 
 // Routes
@@ -61,24 +94,49 @@ app.use('/api/earnings', earningsRoutes);
 
 // Global error handler
 app.use((err, req, res, next) => {
-  console.error(err);
+  console.error('Global error handler:', err);
   const status = err.status || 500;
-  res.status(status).json({ message: err.message || 'Internal Server Error' });
+  const message = process.env.NODE_ENV === 'production' 
+    ? 'Internal Server Error' 
+    : err.message || 'Internal Server Error';
+  
+  res.status(status).json({ 
+    message,
+    ...(process.env.NODE_ENV !== 'production' && { stack: err.stack })
+  });
+});
+
+// 404 handler
+app.use('*', (req, res) => {
+  res.status(404).json({ message: 'Route not found' });
 });
 
 // Port and MongoDB URI
 const PORT = process.env.PORT || 4000;
-const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/campus_exchange';
+const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/campus_trading';
 
 // Start server
 async function start() {
   try {
-    await mongoose.connect(MONGO_URI, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-      serverSelectionTimeoutMS: 5000,
+    // MongoDB connection with production-ready options
+    const mongooseOptions = {
+      serverSelectionTimeoutMS: 10000,
+      socketTimeoutMS: 45000,
+      bufferCommands: false,
+    };
+
+    // Deprecated options removed - no longer needed in modern MongoDB driver
+
+           await mongoose.connect(MONGO_URI, mongooseOptions);
+    
+    // Wait for connection to be ready and ensure it's established
+    await new Promise(resolve => {
+      if (mongoose.connection.readyState === 1) {
+        resolve();
+      } else {
+        mongoose.connection.once('connected', resolve);
+      }
     });
-    console.log('✅ MongoDB connected successfully');
     
     // Load stock data from database on startup
     await loadStocksFromDatabase();
@@ -104,11 +162,24 @@ async function start() {
       }
     }, 5 * 60 * 1000); // 5 minutes
     
-    app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
+           app.listen(PORT, '0.0.0.0', () => {
+             // Server started successfully
+           });
   } catch (error) {
     console.error('❌ Failed to connect to MongoDB:', error.message);
     process.exit(1);
   }
 }
+
+// Graceful shutdown
+process.on('SIGTERM', async () => {
+  await mongoose.connection.close();
+  process.exit(0);
+});
+
+process.on('SIGINT', async () => {
+  await mongoose.connection.close();
+  process.exit(0);
+});
 
 start();

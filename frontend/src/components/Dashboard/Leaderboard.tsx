@@ -31,6 +31,7 @@ const Leaderboard = () => {
       const { data } = await apiClient.get(ENDPOINTS.leaderboard, {
         params: { period }
       });
+      // The API returns data directly in data.data array
       return data.data || [];
     } catch (error) {
       return [];
@@ -149,6 +150,9 @@ interface LeaderboardContentProps {
 }
 
 const LeaderboardContent = ({ data, loading, period }: LeaderboardContentProps) => {
+  // Safety check: ensure data is an array
+  const safeData = Array.isArray(data) ? data : [];
+  
   const getRankIcon = (rank: number | undefined) => {
     const rankNum = rank || 0;
     switch (rankNum) {
@@ -210,7 +214,7 @@ const LeaderboardContent = ({ data, loading, period }: LeaderboardContentProps) 
 
   return (
     <div className="space-y-2">
-      {data.slice(0, 20).map((entry, index) => (
+      {safeData.slice(0, 20).map((entry, index) => (
         <div
           key={`${entry.userId || 'unknown'}-${entry.rank || index}`}
           className={`flex items-center justify-between p-3 rounded-lg border transition-all hover:bg-accent/50 ${

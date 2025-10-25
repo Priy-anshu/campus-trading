@@ -5,8 +5,8 @@
  * Currently using mock data, but ready for backend integration.
  */
 
-// Base API URL - proxied by Vite to backend at http://localhost:4000
-export const API_BASE = import.meta.env.VITE_API_URL || '';
+// Base API URL - production backend URL
+export const API_BASE = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? 'https://campus-trading-backend.onrender.com' : '');
 
 // API Endpoints
 export const ENDPOINTS = {

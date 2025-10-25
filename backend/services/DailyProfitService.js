@@ -33,7 +33,6 @@ export class DailyProfitService {
 
       // If it's a new day, reset daily profit and store yesterday's earnings
       if (isNewDay) {
-        console.log(`[${new Date().toISOString()}] New day detected for user ${userId}, resetting daily profit`);
         // Store yesterday's total earnings for 1-day return calculation
         user.yesterdayTotalEarnings = user.lastPortfolioValue || currentPortfolioValue;
         user.dailyProfit = 0;
@@ -42,7 +41,6 @@ export class DailyProfitService {
 
       // If it's a new month, reset monthly profit and store start of month portfolio value
       if (isNewMonth) {
-        console.log(`[${new Date().toISOString()}] New month detected for user ${userId}, resetting monthly profit`);
         // Store the portfolio value at the start of this month for monthly return calculation
         user.startOfMonthPortfolioValue = currentPortfolioValue;
         user.lastMonthTotalEarnings = user.lastPortfolioValue || currentPortfolioValue;
@@ -68,14 +66,12 @@ export class DailyProfitService {
       // Update daily and monthly profits with earnings
       if (isNewDay) {
         user.dailyProfit = 0; // Reset to 0 for new day
-        console.log(`[${new Date().toISOString()}] Daily profit reset to 0 for new day`);
       } else {
         user.dailyProfit = dailyEarnings; // Update to current total earnings for same day
       }
       
       if (isNewMonth) {
         user.monthlyProfit = 0; // Reset to 0 for new month
-        console.log(`[${new Date().toISOString()}] Monthly profit reset to 0 for new month`);
       } else {
         user.monthlyProfit = dailyEarnings; // Update to current total earnings for same month
       }
@@ -92,7 +88,6 @@ export class DailyProfitService {
       const profitToStore = isNewDay ? 0 : dailyEarnings;
       await this.storeDailyProfitRecord(userId, profitToStore, currentPortfolioValue);
 
-      console.log(`[${new Date().toISOString()}] Updated daily profit for user ${userId}: ${profitToStore.toFixed(2)} (isNewDay: ${isNewDay})`);
     } catch (error) {
       console.error(`[${new Date().toISOString()}] Error updating daily profit for user ${userId}:`, error.message);
     }
@@ -327,7 +322,6 @@ export class DailyProfitService {
         await user.save();
       }
 
-      console.log(`[${new Date().toISOString()}] Updated daily profits for ${users.length} users`);
     } catch (error) {
       console.error(`[${new Date().toISOString()}] Error updating all users daily profits:`, error.message);
     }

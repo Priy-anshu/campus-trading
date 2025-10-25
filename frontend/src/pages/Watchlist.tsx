@@ -11,7 +11,7 @@ import Navbar from '@/components/Navbar';
 interface WatchlistStock {
   symbol: string;
   lastPrice: number;
-  pChange: number;
+  changePercent: number;
   change: number;
   totalTradedVolume: number;
 }
@@ -91,15 +91,24 @@ const WatchlistPage: React.FC = () => {
     return `₹${price.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`;
   };
 
-  const formatChange = (change: number) => {
+  const formatChange = (change: number | undefined) => {
+    if (change === undefined || change === null) {
+      return '0.00';
+    }
     return change >= 0 ? `+${change.toFixed(2)}` : change.toFixed(2);
   };
 
-  const getChangeColor = (change: number) => {
+  const getChangeColor = (change: number | undefined) => {
+    if (change === undefined || change === null) {
+      return 'text-gray-600';
+    }
     return change >= 0 ? 'text-green-600' : 'text-red-600';
   };
 
-  const getChangeIcon = (change: number) => {
+  const getChangeIcon = (change: number | undefined) => {
+    if (change === undefined || change === null) {
+      return <TrendingUp className="h-4 w-4 text-gray-400" />;
+    }
     return change >= 0 ? <TrendingUp className="h-4 w-4" /> : <TrendingDown className="h-4 w-4" />;
   };
 
@@ -225,10 +234,10 @@ const WatchlistPage: React.FC = () => {
                         <div className="text-lg font-semibold">
                           {formatPrice(stock.lastPrice)}
                         </div>
-                        <div className={`flex items-center gap-1 ${getChangeColor(stock.pChange)}`}>
-                          {getChangeIcon(stock.pChange)}
+                        <div className={`flex items-center gap-1 ${getChangeColor(stock.changePercent)}`}>
+                          {getChangeIcon(stock.changePercent)}
                           <span className="text-sm">
-                            {formatChange(stock.change)} ({formatChange(stock.pChange)}%)
+                            {formatChange(stock.change)} ({formatChange(stock.changePercent)}%)
                           </span>
                         </div>
                       </div>

@@ -1,5 +1,5 @@
-const StockCache = require('./StockCache');
-const { fetchStockByName } = require('./ExternalAPIServices');
+import StockCache from './StockCache.js';
+import { fetchStockByName } from './ExternalAPIServices.js';
 
 class StockService {
   static async getAllStocks() {
@@ -68,4 +68,4 @@ class StockService {
   }
 }
 
-module.exports = StockService;
+export default StockService;

@@ -1,328 +1,390 @@
-# Paper Trading Web App
+# 🏛️ Campus Trading - Paper Trading Platform
 
-A full-stack paper trading application that allows users to simulate stock trading with real-time market data from RapidAPI.
+A comprehensive full-stack paper trading application designed for educational purposes, allowing users to simulate real stock trading with live market data, portfolio management, and competitive leaderboards.
 
-## Features
+## ✨ Features
 
-- **Authentication**: JWT-based user registration and login
-- **Real-time Stock Data**: Fetch live stock prices from RapidAPI
-- **Portfolio Management**: Track holdings, balance, and transactions
-- **Trading Simulation**: Buy and sell stocks with simulated money
-- **Transaction History**: Complete record of all trading activities
-- **Responsive Design**: Modern UI with TailwindCSS
-- **Real-time Updates**: Live portfolio tracking and market data
+### 🔐 Authentication & User Management
 
-## Tech Stack
+- **Secure Registration/Login**: JWT-based authentication with bcrypt password hashing
+- **User Profiles**: Complete user information with mobile numbers, date of birth, and gender
+- **Session Management**: Persistent login with secure token handling
 
-- **Frontend**: React + Vite + TailwindCSS
-- **Backend**: Node.js + Express
-- **Database**: MongoDB (Mongoose)
-- **Authentication**: JWT (JSON Web Token)
-- **Stock Data**: RapidAPI
-- **State Management**: React Context API
-- **HTTP Client**: Axios
-- **Notifications**: React Hot Toast
+### 📊 Real-time Market Data
 
-## Project Structure
+- **Live Stock Prices**: Real-time data from external APIs with automatic updates
+- **Market Ticker**: Animated scrolling ticker with customizable restart time (default: 20 minutes)
+- **Stock Search**: Advanced search functionality with symbol and company name lookup
+- **Top Movers**: Live tracking of gainers and losers
+- **Most Traded**: Popular stocks with volume data
 
-```
-paper-trading/
-├── backend/
-│   ├── server.js                 # Main server file
-│   ├── routes/                   # API routes
-│   │   ├── authRoutes.js         # Authentication endpoints
-│   │   ├── stockRoutes.js        # Stock data endpoints
-│   │   └── portfolioRoutes.js    # Portfolio management endpoints
-│   ├── models/                   # MongoDB models
-│   │   ├── User.js               # User model
-│   │   ├── Portfolio.js          # Portfolio model
-│   │   └── Transaction.js        # Transaction model
-│   ├── middlewares/              # Custom middleware
-│   │   └── auth.js               # JWT authentication middleware
-│   ├── utils/                    # Utility functions
-│   │   └── stockApi.js           # RapidAPI integration
-│   └── config/                   # Configuration files
-├── frontend/
-│   ├── src/
-│   │   ├── pages/                # React pages
-│   │   │   ├── Login.jsx         # Login page
-│   │   │   ├── Register.jsx      # Registration page
-│   │   │   ├── Dashboard.jsx     # Main dashboard
-│   │   │   ├── Market.jsx        # Stock market browser
-│   │   │   ├── Trade.jsx         # Trading interface
-│   │   │   └── Portfolio.jsx     # Portfolio management
-│   │   ├── components/           # Reusable components
-│   │   ├── context/              # React context
-│   │   │   └── AuthContext.jsx   # Authentication context
-│   │   ├── hooks/                # Custom React hooks
-│   │   ├── utils/                # Utility functions
-│   │   │   └── api.js            # API configuration
-│   │   └── App.jsx               # Main App component
-│   ├── index.html                # HTML template
-│   ├── package.json              # Frontend dependencies
-│   ├── vite.config.js            # Vite configuration
-│   └── tailwind.config.js        # TailwindCSS configuration
-├── storage.env                   # Environment variables
-├── package.json                  # Root package.json
-└── README.md                     # This file
-```
+### 💼 Portfolio Management
 
-## Setup Instructions
+- **Holdings Dashboard**: Complete portfolio overview with current values
+- **Transaction History**: Detailed record of all buy/sell transactions
+- **Performance Tracking**: Real-time P&L calculations and performance metrics
+- **Watchlist**: Personal stock watchlist with price alerts
+- **Daily/Monthly/Overall Returns**: Comprehensive profit tracking
+
+### 🏆 Competitive Features
+
+- **Leaderboard System**: Daily, monthly, and overall rankings
+- **User Rankings**: Individual performance tracking
+- **Profit Calculations**: Automated daily and monthly profit updates
+- **Cron Jobs**: Scheduled resets for daily and monthly competitions
+
+### 📱 Responsive Design
+
+- **Mobile-First**: Optimized for all device sizes
+- **Modern UI**: Clean, intuitive interface with TailwindCSS
+- **Dark/Light Theme**: Adaptive theming support
+- **Mobile Search**: Dedicated mobile search functionality
+
+## 🛠️ Tech Stack
+
+### Frontend
+
+- **React 18** with TypeScript
+- **Vite** for fast development and building
+- **TailwindCSS** for styling
+- **React Router** for navigation
+- **Axios** for API communication
+- **Recharts** for data visualization
+- **Lucide React** for icons
+
+### Backend
+
+- **Node.js** with Express.js
+- **MongoDB** with Mongoose ODM
+- **JWT** for authentication
+- **bcrypt** for password hashing
+- **CORS** for cross-origin requests
+- **Helmet** for security
+- **Morgan** for logging
+- **Node-cron** for scheduled tasks
+
+### Database Models
+
+- **User**: User profiles and authentication
+- **Portfolio**: Stock holdings and transactions
+- **Order**: Trading orders and history
+- **Leaderboard**: Competitive rankings
+- **DailyProfit**: Daily profit tracking
+- **Earnings**: Comprehensive earnings system
+
+## 🚀 Quick Start
 
 ### Prerequisites
 
-- **Node.js** (v16 or higher) - [Download here](https://nodejs.org/)
-- **MongoDB** (running locally or MongoDB Atlas) - [Download here](https://www.mongodb.com/try/download/community)
-- **RapidAPI account** with a stock data API subscription
+- **Node.js** (v18 or higher)
+- **MongoDB** (local or Atlas)
+- **Git**
 
-### Step 1: Clone and Install Dependencies
+### Installation
+
+1. **Clone the repository**
 
 ```bash
-# Clone the repository
 git clone <repository-url>
-cd paper-trading
-
-# Install all dependencies (root, backend, and frontend)
-npm run install-all
+cd campus-trading
 ```
 
-### Step 2: Set Up MongoDB
-
-**Option A: Local MongoDB**
+2. **Install dependencies**
 
 ```bash
-# Install MongoDB locally (macOS with Homebrew)
-brew tap mongodb/brew
-brew install mongodb-community
-brew services start mongodb/brew/mongodb-community
+# Install backend dependencies
+cd backend
+npm install
 
-# Or start MongoDB manually
-mongod
+# Install frontend dependencies
+cd ../frontend
+npm install
 ```
 
-**Option B: MongoDB Atlas (Cloud)**
+3. **Set up environment variables**
 
-1. Go to [MongoDB Atlas](https://www.mongodb.com/atlas)
-2. Create a free account and cluster
-3. Get your connection string
-
-### Step 3: Set Up RapidAPI
-
-1. Go to [RapidAPI](https://rapidapi.com/)
-2. Sign up for a free account
-3. Subscribe to a stock data API (e.g., "Latest Stock Price" or "NSE Data")
-4. Get your API key and host
-
-### Step 4: Configure Environment Variables
-
-Edit the `storage.env` file with your actual values:
+Create `backend/.env`:
 
 ```env
-# Server Configuration
-PORT=5000
-FRONTEND_URL=http://localhost:5173
-
-# Database Configuration
-MONGO_URI=mongodb://localhost:27017/paper_trading
-# For MongoDB Atlas, use: mongodb+srv://username:password@cluster.mongodb.net/paper_trading
-
-# Authentication
-JWT_SECRET=your_super_secret_jwt_key_change_this_in_production_make_it_long_and_random
-
-# RapidAPI Configuration
-RAPID_API_KEY=your_rapidapi_key_here
-RAPID_API_HOST=latest-stock-price.p.rapidapi.com
+PORT=4000
+MONGO_URI=mongodb://localhost:27017/campus_trading
+JWT_SECRET=your_super_secret_jwt_key_here
+NODE_ENV=development
 ```
 
-### Step 5: Start the Application
+Create `frontend/.env`:
 
-**Option A: Start both servers together**
+```env
+VITE_API_URL=http://localhost:4000
+```
+
+4. **Start MongoDB**
 
 ```bash
-npm run dev
+# For local MongoDB
+mongod --dbpath /usr/local/var/mongodb
+
+# Or use MongoDB Atlas (cloud)
 ```
 
-**Option B: Start servers separately**
+5. **Start the application**
 
-Terminal 1 (Backend):
+**Backend:**
 
 ```bash
 cd backend
-npm run dev
+npm start
 ```
 
-Terminal 2 (Frontend):
+**Frontend:**
 
 ```bash
 cd frontend
 npm run dev
 ```
 
-### Step 6: Access the Application
+6. **Access the application**
 
-- **Frontend**: http://localhost:5173
-- **Backend API**: http://localhost:5000
-- **API Health Check**: http://localhost:5000/api/health
+- **Frontend**: http://localhost:3000
+- **Backend API**: http://localhost:4000
+- **Health Check**: http://localhost:4000/health
 
-## Usage Guide
+## 📁 Project Structure
 
-### 1. Registration and Login
+```
+campus-trading/
+├── backend/
+│   ├── controllers/          # Request handlers
+│   │   ├── authController.js
+│   │   ├── portfolioController.js
+│   │   ├── stockController.js
+│   │   └── leaderboardController.js
+│   ├── models/              # Database models
+│   │   ├── User.js
+│   │   ├── Portfolio.js
+│   │   ├── Order.js
+│   │   └── Leaderboard.js
+│   ├── routes/              # API routes
+│   │   ├── authRoutes.js
+│   │   ├── portfolioRoutes.js
+│   │   ├── stockRoutes.js
+│   │   └── leaderboardRoutes.js
+│   ├── services/            # Business logic
+│   │   ├── StockCache.js
+│   │   ├── portfolioService.js
+│   │   └── DailyProfitService.js
+│   ├── utils/               # Utility functions
+│   │   ├── response.js
+│   │   ├── validation.js
+│   │   └── timeUtils.js
+│   ├── server.js            # Main server file
+│   └── package.json
+├── frontend/
+│   ├── src/
+│   │   ├── components/      # React components
+│   │   │   ├── Dashboard/
+│   │   │   ├── Portfolio/
+│   │   │   └── WatchList/
+│   │   ├── pages/           # Page components
+│   │   │   ├── Dashboard.tsx
+│   │   │   ├── Portfolio.tsx
+│   │   │   └── Watchlist.tsx
+│   │   ├── hooks/           # Custom hooks
+│   │   ├── services/        # API services
+│   │   ├── contexts/        # React contexts
+│   │   └── App.tsx
+│   ├── public/
+│   ├── package.json
+│   └── vite.config.ts
+├── PRODUCTION_READINESS.md  # Production deployment guide
+├── backend/render.yaml       # Render.com deployment config
+├── frontend/netlify.toml    # Netlify deployment config
+└── README.md
+```
 
-- Navigate to the application
-- Click "Create a new account" to register
-- Use your email and password to login
-
-### 2. Dashboard Overview
-
-- View your portfolio summary
-- Check cash balance and total portfolio value
-- See gain/loss statistics
-- Browse top gainers and losers
-
-### 3. Browse Market
-
-- Search for stocks by symbol or company name
-- View popular stocks with real-time prices
-- Click "Trade" to buy or sell stocks
-
-### 4. Trading
-
-- Select a stock to trade
-- Choose "Buy" or "Sell"
-- Enter the quantity
-- Review the order details
-- Execute the trade
-
-### 5. Portfolio Management
-
-- View all your holdings
-- Track transaction history
-- Monitor performance metrics
-- Refresh data to get latest prices
-
-## API Endpoints
+## 🔧 API Endpoints
 
 ### Authentication
 
-- `POST /api/auth/register` - Register a new user
-- `POST /api/auth/login` - Login user
-- `GET /api/auth/me` - Get current user info
+- `POST /api/auth/register` - Register new user
+- `POST /api/auth/login` - User login
+- `GET /api/auth/user` - Get current user
+- `PUT /api/auth/change-password` - Change password
 
 ### Stock Data
 
-- `GET /api/stocks/:symbol` - Get specific stock details
-- `GET /api/stocks/top-gainers` - Get top 5 gainers
-- `GET /api/stocks/top-losers` - Get top 5 losers
-- `GET /api/stocks/search/:query` - Search stocks
+- `GET /api/stocks/all` - Get all stocks
+- `GET /api/stocks/gainers` - Top gainers
+- `GET /api/stocks/losers` - Top losers
+- `GET /api/stocks/search?symbol=SYMBOL` - Search stocks
 
 ### Portfolio
 
-- `GET /api/portfolio` - View user's portfolio
+- `GET /api/portfolio` - Get user portfolio
 - `POST /api/portfolio/buy` - Buy stocks
 - `POST /api/portfolio/sell` - Sell stocks
-- `GET /api/portfolio/history` - View transaction history
+- `GET /api/portfolio/history` - Transaction history
 
-## Troubleshooting
+### Leaderboard
+
+- `GET /api/leaderboard?period=day` - Daily leaderboard
+- `GET /api/leaderboard?period=month` - Monthly leaderboard
+- `GET /api/leaderboard?period=overall` - Overall leaderboard
+
+### Orders
+
+- `GET /api/orders` - Get user orders
+- `POST /api/orders` - Create new order
+
+## 🎯 Usage Guide
+
+### 1. Getting Started
+
+1. **Register**: Create a new account with your details
+2. **Login**: Access your trading dashboard
+3. **Explore**: Browse the market and available stocks
+
+### 2. Trading
+
+1. **Search Stocks**: Use the search bar to find stocks
+2. **View Details**: Click on stocks to see detailed information
+3. **Place Orders**: Buy or sell stocks with specified quantities
+4. **Track Performance**: Monitor your portfolio in real-time
+
+### 3. Portfolio Management
+
+1. **View Holdings**: See all your current stock positions
+2. **Check Balance**: Monitor your available cash
+3. **Track Performance**: View daily, monthly, and overall returns
+4. **Transaction History**: Review all your trading activities
+
+### 4. Competition
+
+1. **Leaderboard**: Check your ranking against other users
+2. **Performance Metrics**: Track your profit/loss over time
+3. **Daily/Monthly Resets**: Compete in different time periods
+
+## 🚀 Production Deployment
+
+### Backend (Render.com)
+
+1. Connect your GitHub repository to Render
+2. Use the provided `backend/render.yaml` configuration
+3. Set environment variables in Render dashboard
+4. Deploy automatically on git push
+
+### Frontend (Netlify)
+
+1. Connect your GitHub repository to Netlify
+2. Use the provided `frontend/netlify.toml` configuration
+3. Set build command: `npm run build`
+4. Set publish directory: `dist`
+
+### Environment Variables
+
+**Backend (Production):**
+
+```env
+PORT=4000
+MONGO_URI=mongodb+srv://username:password@cluster.mongodb.net/campus_trading
+JWT_SECRET=your_production_jwt_secret
+NODE_ENV=production
+```
+
+**Frontend (Production):**
+
+```env
+VITE_API_URL=https://your-backend-url.onrender.com
+```
+
+## 🔒 Security Features
+
+- **Helmet.js**: HTTP security headers
+- **CORS**: Cross-origin resource sharing configuration
+- **JWT Authentication**: Secure token-based authentication
+- **Password Hashing**: bcrypt for password security
+- **Input Validation**: Comprehensive input sanitization
+- **Rate Limiting**: Protection against brute force attacks
+
+## 📊 Performance Features
+
+- **Stock Caching**: In-memory cache for fast stock data access
+- **Database Indexing**: Optimized MongoDB queries
+- **Code Splitting**: Frontend bundle optimization
+- **Lazy Loading**: Component-based lazy loading
+- **Cron Jobs**: Automated data updates and resets
+
+## 🐛 Troubleshooting
 
 ### Common Issues
 
 1. **MongoDB Connection Error**
 
-   - Ensure MongoDB is running: `brew services start mongodb/brew/mongodb-community`
-   - Check your `MONGO_URI` in `storage.env`
-   - For Atlas, ensure your IP is whitelisted
+   ```bash
+   # Start MongoDB locally
+   mongod --dbpath /usr/local/var/mongodb
 
-2. **RapidAPI Errors**
+   # Or check Atlas connection string
+   ```
 
-   - Verify your API key is correct
-   - Check your API quota/usage limits
-   - Ensure the API host is correct
-   - The app includes mock data fallbacks for development
+2. **Port Already in Use**
 
-3. **Port Already in Use**
+   ```bash
+   # Kill process on port 4000
+   lsof -ti:4000 | xargs kill -9
+   ```
 
-   - Change the PORT in `storage.env`
-   - Kill existing processes: `lsof -ti:5000 | xargs kill -9`
+3. **Module Import Errors**
 
-4. **Frontend Not Loading**
-   - Check if backend is running on port 5000
-   - Verify `VITE_API_URL` in frontend environment
-   - Clear browser cache and restart
+   ```bash
+   # Clear node_modules and reinstall
+   rm -rf node_modules package-lock.json
+   npm install
+   ```
+
+4. **Frontend Build Issues**
+   ```bash
+   # Clear Vite cache
+   rm -rf node_modules/.vite
+   npm run dev
+   ```
 
 ### Development Tips
 
-1. **Mock Data**: The app includes mock stock data for development when RapidAPI is unavailable
-2. **Hot Reload**: Both frontend and backend support hot reload during development
-3. **Database Reset**: To reset your portfolio, delete the database and restart
-4. **API Testing**: Use tools like Postman to test API endpoints directly
+1. **Hot Reload**: Both frontend and backend support hot reload
+2. **Mock Data**: Fallback data when external APIs are unavailable
+3. **Database Reset**: Clear database for fresh start
+4. **API Testing**: Use tools like Postman for API testing
 
-## Production Deployment
-
-### Backend Deployment
-
-1. Set up a production MongoDB instance
-2. Use environment variables for configuration
-3. Set up proper JWT secrets
-4. Configure CORS for your domain
-5. Use PM2 or similar for process management
-
-### Frontend Deployment
-
-1. Build the production version: `npm run build`
-2. Deploy the `dist` folder to your hosting service
-3. Update API URLs for production
-4. Configure HTTPS for security
-
-## Contributing
+## 🤝 Contributing
 
 1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Test thoroughly
-5. Submit a pull request
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
-## License
+## 📄 License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## API Endpoints
+## 🙏 Acknowledgments
 
-### Authentication
+- **RapidAPI** for stock market data
+- **MongoDB Atlas** for cloud database hosting
+- **Render.com** for backend hosting
+- **Netlify** for frontend hosting
+- **TailwindCSS** for styling framework
+- **React** and **Node.js** communities
 
-- `POST /api/auth/register` - Register a new user
-- `POST /api/auth/login` - Login user
+## 📞 Support
 
-### Stock Data
+For support and questions:
 
-- `GET /api/stocks/:symbol` - Get specific stock details
-- `GET /api/stocks/top-gainers` - Get top 5 gainers
-- `GET /api/stocks/top-losers` - Get top 5 losers
+- Create an issue in the GitHub repository
+- Check the troubleshooting section above
+- Review the API documentation
 
-### Portfolio
+---
 
-- `GET /api/portfolio` - View user's portfolio
-- `POST /api/portfolio/buy` - Buy stocks
-- `POST /api/portfolio/sell` - Sell stocks
-- `GET /api/portfolio/history` - View transaction history
-
-## Usage
-
-1. **Register/Login**: Create an account or login with existing credentials
-2. **View Market**: Browse available stocks and their current prices
-3. **Trade**: Buy and sell stocks using your simulated $100,000 starting balance
-4. **Track Portfolio**: Monitor your holdings, balance, and performance
-5. **View History**: Review all your trading transactions
-
-## Notes
-
-- Starting balance: $100,000 (simulated)
-- All stock prices are fetched in real-time from RapidAPI
-- Transactions are stored in MongoDB for persistence
-- JWT tokens are used for secure authentication
-
-## Troubleshooting
-
-- Ensure MongoDB is running
-- Verify your RapidAPI key is valid and has sufficient quota
-- Check that all environment variables are properly set
-- Make sure ports 5000 and 5173 are available
+**Happy Trading! 📈**

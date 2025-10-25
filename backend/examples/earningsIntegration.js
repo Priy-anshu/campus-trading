@@ -29,7 +29,7 @@ export function handleStockTransaction(userId, transactionType, amount, stockSym
       updateEarnings(userId, earningsAmount);
     }
     
-    console.log(`📈 Stock transaction processed: ${transactionType} ${stockSymbol}, Earnings: ${earningsAmount}`);
+    // Stock transaction processed successfully
     
     return {
       success: true,
@@ -54,7 +54,7 @@ export function handleUserRegistration(userId, name) {
     // Add new user to earnings system
     addUserToEarnings(userId, name);
     
-    console.log(`👤 New user added to earnings system: ${name}`);
+    // New user added to earnings system
     
     return {
       success: true,

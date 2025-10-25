@@ -71,14 +71,11 @@ class LeaderboardService {
 // Initialize leaderboard for all users
 export async function initializeLeaderboard() {
   try {
-    console.log('🔄 Initializing leaderboard for all users...');
     
     const users = await User.find({});
-    console.log(`📊 Found ${users.length} users to initialize leaderboard`);
     
     // This function can be used to set up initial leaderboard data if needed
     // For now, it just logs the initialization
-    console.log('✅ Leaderboard initialization completed');
   } catch (error) {
     console.error('❌ Error initializing leaderboard:', error.message);
     throw error;
@@ -87,109 +84,3 @@ export async function initializeLeaderboard() {
 
 export default LeaderboardService;
 
-// Get user's rank
-export async function getUserRank(userId, period = 'overall') {
-  try {
-    return await Leaderboard.getUserRank(userId, period);
-  } catch (error) {
-    console.error('Error getting user rank:', error);
-    throw error;
-  }
-}
-
-// Ensure all users have leaderboard entries
-async function ensureAllUsersHaveLeaderboardEntries() {
-  try {
-    const users = await User.find({});
-    
-    for (const user of users) {
-      try {
-        const existingEntry = await Leaderboard.findOne({ user: user._id });
-        
-        if (!existingEntry) {
-          await Leaderboard.create({
-            user: user._id,
-            username: user.username || 'user',
-            name: user.name,
-            dailyEarnings: 0,
-            monthlyEarnings: 0,
-            overallEarnings: user.totalProfit || 0,
-            currentPortfolioValue: 0,
-            totalTrades: 0,
-            winRate: 0
-          });
-        }
-      } catch (error) {
-        // Handle duplicate key error gracefully
-        if (error.code === 11000) {
-          console.log(`Leaderboard entry already exists for user ${user._id}`);
-        } else {
-          console.error(`Error creating leaderboard entry for user ${user._id}:`, error);
-        }
-      }
-    }
-  } catch (error) {
-    console.error('Error ensuring leaderboard entries:', error);
-  }
-}
-
-// Reset earnings if needed
-async function resetEarningsIfNeeded() {
-  try {
-    const today = getISTDate();
-    const thisMonth = getStartOfMonthIST();
-    
-    // Reset daily earnings
-    await Leaderboard.updateMany(
-      { 
-        lastDailyReset: { $lt: today }
-      },
-      { 
-        $set: { 
-          dailyEarnings: 0,
-          lastDailyReset: today
-        }
-      }
-    );
-    
-    // Reset monthly earnings
-    await Leaderboard.updateMany(
-      { 
-        lastMonthlyReset: { $lt: thisMonth }
-      },
-      { 
-        $set: { 
-          monthlyEarnings: 0,
-          lastMonthlyReset: thisMonth
-        }
-      }
-    );
-  } catch (error) {
-    console.error('Error resetting earnings:', error);
-  }
-}
-
-// Update portfolio value for a user
-export async function updatePortfolioValue(userId, portfolioValue) {
-  try {
-    const leaderboardEntry = await Leaderboard.findOne({ user: userId });
-    
-    if (leaderboardEntry) {
-      leaderboardEntry.currentPortfolioValue = portfolioValue;
-      await leaderboardEntry.save();
-    }
-  } catch (error) {
-    console.error('Error updating portfolio value:', error);
-  }
-}
-
-// Initialize leaderboard for all users (run once)
-export async function initializeLeaderboard() {
-  try {
-    console.log('Initializing leaderboard for all users...');
-    await ensureAllUsersHaveLeaderboardEntries();
-    console.log('Leaderboard initialization completed');
-  } catch (error) {
-    console.error('Error initializing leaderboard:', error);
-  }
-}

@@ -1,8 +1,8 @@
-const User = require('../models/User');
-const Order = require('../models/Order');
-const Portfolio = require('../models/Portfolio');
-const DailyProfitService = require('./DailyProfitService');
-const StockCache = require('./StockCache');
+import User from '../models/User.js';
+import Order from '../models/Order.js';
+import Portfolio from '../models/Portfolio.js';
+import DailyProfitService from './DailyProfitService.js';
+import { searchBySymbol } from './StockCache.js';
 
 class PortfolioService {
   static async getPortfolio(userId) {
@@ -54,7 +54,8 @@ class PortfolioService {
       }
 
       // Get current stock price
-      const stockPrice = await StockCache.getStockPrice(symbol);
+      const stocks = searchBySymbol(symbol);
+      const stockPrice = stocks.length > 0 ? stocks[0].lastPrice : 0;
       if (!stockPrice) {
         throw new Error('Stock not found or price unavailable');
       }
@@ -147,7 +148,8 @@ class PortfolioService {
       }
 
       // Get current stock price
-      const stockPrice = await StockCache.getStockPrice(symbol);
+      const stocks = searchBySymbol(symbol);
+      const stockPrice = stocks.length > 0 ? stocks[0].lastPrice : 0;
       if (!stockPrice) {
         throw new Error('Stock price unavailable');
       }
@@ -204,17 +206,17 @@ class PortfolioService {
 
   static async getDailyProfit(userId, period, limit) {
     try {
-      const DailyProfit = require('../models/DailyProfit');
-      const DailyEarnings = require('../models/DailyEarnings');
+      const DailyProfit = await import('../models/DailyProfit.js');
+      const DailyEarnings = await import('../models/DailyEarnings.js');
       
       let data = [];
       
       if (period === 'day') {
-        data = await DailyProfit.find({ userId })
+        data = await DailyProfit.default.find({ userId })
           .sort({ date: -1 })
           .limit(limit);
       } else {
-        data = await DailyEarnings.find({ user: userId })
+        data = await DailyEarnings.default.find({ user: userId })
           .sort({ date: -1 })
           .limit(limit);
       }
@@ -233,11 +235,11 @@ class PortfolioService {
         
         // Fetch data again
         if (period === 'day') {
-          data = await DailyProfit.find({ userId })
+          data = await DailyProfit.default.find({ userId })
             .sort({ date: -1 })
             .limit(limit);
         } else {
-          data = await DailyEarnings.find({ user: userId })
+          data = await DailyEarnings.default.find({ user: userId })
             .sort({ date: -1 })
             .limit(limit);
         }
@@ -252,23 +254,19 @@ class PortfolioService {
 
   static async recalculateDailyProfits() {
     try {
-      console.log('🔄 Starting daily profit recalculation for all users...');
       
       const users = await User.find({});
-      console.log(`📊 Found ${users.length} users to recalculate`);
       
       for (const user of users) {
         try {
           const currentPortfolioValue = await DailyProfitService.calculatePortfolioValue(user._id);
           await DailyProfitService.updateDailyProfit(user._id, currentPortfolioValue, 0);
           
-          console.log(`✅ Updated daily profit for user ${user.name || user.email}: ${currentPortfolioValue - 100000}`);
         } catch (error) {
           console.error(`❌ Error updating daily profit for user ${user.name || user.email}:`, error.message);
         }
       }
       
-      console.log('✅ Daily profit recalculation completed');
     } catch (error) {
       console.error('❌ Error in daily profit recalculation:', error.message);
       throw error;
@@ -277,10 +275,8 @@ class PortfolioService {
 
   static async forceDailyReset() {
     try {
-      console.log('🔄 Forcing daily reset for all users...');
       
       const users = await User.find({});
-      console.log(`📊 Found ${users.length} users to reset`);
       
       const { getStartOfDayIST } = await import('../utils/timeUtils.js');
       const today = getStartOfDayIST();
@@ -294,13 +290,11 @@ class PortfolioService {
           
           await user.save();
           
-          console.log(`✅ Reset daily profit for user ${user.name || user.email}: 0`);
         } catch (error) {
           console.error(`❌ Error resetting user ${user.name || user.email}:`, error.message);
         }
       }
       
-      console.log('✅ Daily reset completed for all users');
     } catch (error) {
       console.error('❌ Error in daily reset:', error.message);
       throw error;
@@ -308,4 +302,4 @@ class PortfolioService {
   }
 }
 
-module.exports = PortfolioService;
+export default PortfolioService;

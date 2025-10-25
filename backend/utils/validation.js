@@ -38,7 +38,7 @@ const sanitizeInput = (input) => {
   return input;
 };
 
-module.exports = {
+export {
   validateEmail,
   validatePassword,
   validateMobile,

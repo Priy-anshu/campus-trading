@@ -6,8 +6,8 @@ interface StockOverviewProps {
   symbol: string;
   exchange: string;
   currentPrice: number;
-  change: number;
-  changePercent: number;
+  change?: number;
+  changePercent?: number;
   logoUrl?: string;
 }
 
@@ -20,7 +20,9 @@ const StockOverview = ({
   changePercent,
   logoUrl,
 }: StockOverviewProps) => {
-  const isPositive = change >= 0;
+  const safeChange = change ?? 0;
+  const safeChangePercent = changePercent ?? 0;
+  const isPositive = safeChange >= 0;
 
   return (
     <Card className="p-6">
@@ -61,8 +63,8 @@ const StockOverview = ({
               )}
               <span>
                 {isPositive ? "+" : ""}
-                {change.toFixed(2)} ({isPositive ? "+" : ""}
-                {changePercent.toFixed(2)}%)
+                {safeChange.toFixed(2)} ({isPositive ? "+" : ""}
+                {safeChangePercent.toFixed(2)}%)
               </span>
             </div>
           </div>

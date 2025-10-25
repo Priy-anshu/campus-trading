@@ -22,7 +22,7 @@ import {
 interface ApiStock {
   symbol: string;
   lastPrice?: number;
-  pChange?: number;
+  changePercent?: number;
 }
 
 interface Watchlist {
@@ -124,7 +124,7 @@ const AddStockModal = ({
                         symbol: stock.symbol,
                         companyName: stock.symbol,
                         price: stock.lastPrice || 0,
-                        percentChange: stock.pChange || 0,
+                        percentChange: stock.changePercent || 0,
                       });
                       setSearchQuery("");
                     }}

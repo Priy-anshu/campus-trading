@@ -413,13 +413,13 @@ const WatchlistManager = () => {
                                 <div className="flex-1">
                                   <div className="flex items-center gap-2">
                                     <span className="font-semibold text-sm">{stock.symbol}</span>
-                                    {stock.pChange !== undefined && (
+                                    {stock.changePercent !== undefined && (
                                       <span className={`text-xs px-1.5 py-0.5 rounded ${
-                                        stock.pChange >= 0 
+                                        stock.changePercent >= 0 
                                           ? 'bg-green-100 text-green-700' 
                                           : 'bg-red-100 text-red-700'
                                       }`}>
-                                        {stock.pChange >= 0 ? '+' : ''}{stock.pChange.toFixed(2)}%
+                                        {stock.changePercent >= 0 ? '+' : ''}{stock.changePercent.toFixed(2)}%
                                       </span>
                                     )}
                                   </div>

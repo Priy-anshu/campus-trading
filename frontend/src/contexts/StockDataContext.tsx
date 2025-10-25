@@ -4,7 +4,7 @@ import { ENDPOINTS, apiClient } from '@/api/config';
 interface StockData {
   symbol: string;
   lastPrice: number;
-  pChange: number;
+  changePercent: number;
   change: number;
   totalTradedVolume: number;
 }

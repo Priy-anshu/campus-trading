@@ -47,7 +47,7 @@ const sendNotFound = (res, message = 'Resource not found') => {
   });
 };
 
-module.exports = {
+export {
   sendSuccess,
   sendError,
   sendValidationError,

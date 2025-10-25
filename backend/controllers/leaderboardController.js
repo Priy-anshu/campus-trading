@@ -1,5 +1,5 @@
-const { sendSuccess, sendError } = require('../utils/response');
-const leaderboardService = require('../services/leaderboardService');
+import { sendSuccess, sendError } from '../utils/response.js';
+import leaderboardService from '../services/leaderboardService.js';
 
 class LeaderboardController {
   static async getLeaderboard(req, res) {
@@ -38,4 +38,4 @@ class LeaderboardController {
   }
 }
 
-module.exports = LeaderboardController;
+export default LeaderboardController;

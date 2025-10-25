@@ -64,7 +64,7 @@ const MarketTicker = () => {
       const isMobile = window.innerWidth < 768; // md breakpoint
       
       // Try to calculate optimal duration based on stock count
-      let animationDuration = 600000; // Default: 10 minutes fallback
+      let animationDuration = 1200000; // Default: 20 minutes fallback
       let maxDistance = isMobile ? 7500 : 2000; // Default distances
       
       if (stocks.length > 0) {
@@ -86,19 +86,19 @@ const MarketTicker = () => {
           // Calculate duration needed to show all stocks at the desired speed
           const calculatedDuration = (totalDistanceNeeded / speed) * 1000; // convert to milliseconds
           
-          // Use calculated duration if it's reasonable (between 2 minutes and 15 minutes)
+          // Use calculated duration if it's reasonable (between 2 minutes and 20 minutes)
           const minDuration = 120000; // 2 minutes
-          const maxDuration = 900000; // 15 minutes
+          const maxDuration = 1200000; // 20 minutes
           
           if (calculatedDuration >= minDuration && calculatedDuration <= maxDuration) {
             animationDuration = calculatedDuration;
             maxDistance = totalDistanceNeeded;
             console.log(`Using calculated duration: ${Math.round(animationDuration/1000)}s for ${stocks.length} stocks`);
           } else {
-            console.log(`Using fallback duration: 10 minutes (calculated: ${Math.round(calculatedDuration/1000)}s was outside reasonable range)`);
+            console.log(`Using fallback duration: 20 minutes (calculated: ${Math.round(calculatedDuration/1000)}s was outside reasonable range)`);
           }
         } catch (error) {
-          console.log('Using fallback duration: 10 minutes (calculation failed)');
+          console.log('Using fallback duration: 20 minutes (calculation failed)');
         }
       }
       
@@ -186,14 +186,14 @@ const MarketTicker = () => {
                 const pChangeElement = element.querySelector('[data-pchange]');
                 
                 if (priceElement) {
-                  priceElement.textContent = `₹${stock.lastPrice.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`;
+                  priceElement.textContent = `₹${(stock.lastPrice || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}`;
                 }
                 if (changeElement) {
-                  changeElement.textContent = `${stock.pChange.toFixed(2)}%`;
-                  changeElement.className = `text-sm font-medium ${stock.change >= 0 ? 'text-green-600' : 'text-red-600'}`;
+                  changeElement.textContent = `${(stock.pChange || 0).toFixed(2)}%`;
+                  changeElement.className = `text-sm font-medium ${(stock.change || 0) >= 0 ? 'text-green-600' : 'text-red-600'}`;
                 }
                 if (pChangeElement) {
-                  pChangeElement.className = `flex items-center gap-1 ${stock.change >= 0 ? 'text-green-600' : 'text-red-600'}`;
+                  pChangeElement.className = `flex items-center gap-1 ${(stock.change || 0) >= 0 ? 'text-green-600' : 'text-red-600'}`;
                 }
               }
             });
@@ -240,7 +240,7 @@ const MarketTicker = () => {
             {/* First set of stocks */}
             <div className="flex gap-4 min-w-max">
               {stocks.map((stock, index) => {
-                const isPositive = stock.change >= 0;
+                const isPositive = (stock.change || 0) >= 0;
                 return (
                   <div
                     key={`first-${stock.symbol}-${index}`}
@@ -250,7 +250,7 @@ const MarketTicker = () => {
                     <div className="flex-1">
                       <p className="text-xs font-medium text-muted-foreground">{stock.symbol}</p>
                       <p data-price className="text-lg font-semibold text-foreground mt-1">
-                        ₹{stock.lastPrice.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                        ₹{(stock.lastPrice || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
                       </p>
                     </div>
                     <div data-pchange className={`flex items-center gap-1 ${isPositive ? 'text-green-600' : 'text-red-600'}`}>
@@ -260,7 +260,7 @@ const MarketTicker = () => {
                         <TrendingDown className="h-4 w-4" />
                       )}
                       <span data-change className="text-sm font-medium">
-                        {isPositive ? '+' : ''}{stock.pChange.toFixed(2)}%
+                        {isPositive ? '+' : ''}{(stock.pChange || 0).toFixed(2)}%
                       </span>
                     </div>
                   </div>
@@ -271,7 +271,7 @@ const MarketTicker = () => {
         {/* Duplicate set for seamless scrolling */}
         <div className="flex gap-4 min-w-max ml-8">
           {stocks.map((stock, index) => {
-            const isPositive = stock.change >= 0;
+            const isPositive = (stock.change || 0) >= 0;
             return (
               <div
                 key={`second-${stock.symbol}-${index}`}
@@ -281,7 +281,7 @@ const MarketTicker = () => {
                 <div className="flex-1">
                   <p className="text-xs font-medium text-muted-foreground">{stock.symbol}</p>
                   <p data-price className="text-lg font-semibold text-foreground mt-1">
-                    ₹{stock.lastPrice.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                    ₹{(stock.lastPrice || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
                   </p>
                 </div>
                 <div data-pchange className={`flex items-center gap-1 ${isPositive ? 'text-green-600' : 'text-red-600'}`}>
@@ -291,7 +291,7 @@ const MarketTicker = () => {
                     <TrendingDown className="h-4 w-4" />
                   )}
                   <span data-change className="text-sm font-medium">
-                    {isPositive ? '+' : ''}{stock.pChange.toFixed(2)}%
+                    {isPositive ? '+' : ''}{(stock.pChange || 0).toFixed(2)}%
                   </span>
                 </div>
               </div>

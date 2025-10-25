@@ -1,0 +1,15 @@
+# Render.com deployment configuration
+services:
+  - type: web
+    name: campus-trading-backend
+    env: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: MONGO_URI
+        value: mongodb+srv://priyanshu102938_db_user:JhXRBGUWc8RbmkWu@cluster0.nobx0qb.mongodb.net/paper_trading?retryWrites=true&w=majority&appName=Cluster0
+      - key: JWT_SECRET
+        value: your_super_secure_jwt_secret_key_here_change_this_in_production

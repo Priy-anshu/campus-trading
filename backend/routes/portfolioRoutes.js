@@ -7,35 +7,52 @@ import DailyProfitService from '../services/DailyProfitService.js';
 import DailyProfit from '../models/DailyProfit.js';
 import DailyEarnings from '../models/DailyEarnings.js';
 
+/**
+ * Portfolio Routes
+ * 
+ * Handles all portfolio-related API endpoints including:
+ * - User portfolio data retrieval
+ * - Stock buy/sell operations
+ * - Daily profit calculations
+ * - Admin operations for data management
+ * 
+ * Authentication: Most routes require valid JWT token
+ * Admin routes: Force reset and recalculation (no auth required)
+ */
+
 const router = Router();
 
-// Force daily reset for all users (no auth required for admin task)
+/**
+ * Force daily reset for all users (Admin endpoint)
+ * Resets daily profits to 0 for all users and updates reset timestamps
+ * Used for manual daily resets or system maintenance
+ * 
+ * @route POST /api/portfolio/force-daily-reset
+ * @access Public (Admin operation)
+ * @returns {object} Success/error message
+ */
 router.post('/force-daily-reset', async (req, res) => {
   try {
-    console.log('🔄 Forcing daily reset for all users...');
-    
+    // Get all users from database
     const users = await User.find({});
-    console.log(`📊 Found ${users.length} users to reset`);
     
+    // Set today's date to start of day (00:00:00)
     const today = new Date();
-    today.setHours(0, 0, 0, 0); // Start of today
+    today.setHours(0, 0, 0, 0);
     
+    // Reset daily profits for each user
     for (const user of users) {
       try {
-        // Force reset daily profit to 0 for new day
+        // Reset daily profit to 0 for new day
         user.dailyProfit = 0;
         user.lastDailyReset = today;
         user.yesterdayTotalEarnings = user.lastPortfolioValue || 100000;
         
         await user.save();
-        
-        console.log(`✅ Reset daily profit for user ${user.name || user.email}: 0`);
       } catch (error) {
         console.error(`❌ Error resetting user ${user.name || user.email}:`, error.message);
       }
     }
-    
-    console.log('✅ Daily reset completed for all users');
     res.status(200).json({ message: 'Daily profits reset to 0 for all users.' });
   } catch (error) {
     console.error('❌ Error during daily reset:', error.message);
@@ -43,30 +60,32 @@ router.post('/force-daily-reset', async (req, res) => {
   }
 });
 
-// Recalculate daily profits for all users (no auth required for admin task)
+/**
+ * Recalculate daily profits for all users (Admin endpoint)
+ * Recalculates and updates daily profits for all users based on current portfolio values
+ * Used for data correction or system maintenance
+ * 
+ * @route POST /api/portfolio/recalculate-daily-profits
+ * @access Public (Admin operation)
+ * @returns {object} Success/error message
+ */
 router.post('/recalculate-daily-profits', async (req, res) => {
   try {
-    console.log('🔄 Starting daily profit recalculation for all users...');
-    
-    // Get all users
+    // Get all users from database
     const users = await User.find({});
-    console.log(`📊 Found ${users.length} users to recalculate`);
     
+    // Recalculate profits for each user
     for (const user of users) {
       try {
-        // Calculate current portfolio value
+        // Calculate current portfolio value for the user
         const currentPortfolioValue = await DailyProfitService.calculatePortfolioValue(user._id);
         
-        // Update daily profit with new logic
+        // Update daily profit with new calculation logic
         await DailyProfitService.updateDailyProfit(user._id, currentPortfolioValue, 0);
-        
-        console.log(`✅ Updated daily profit for user ${user.name || user.email}: ${currentPortfolioValue - 100000}`);
       } catch (error) {
         console.error(`❌ Error updating user ${user.name || user.email}:`, error.message);
       }
     }
-    
-    console.log('🎉 Daily profit recalculation completed!');
     res.json({ message: 'Daily profit recalculation completed successfully' });
   } catch (error) {
     console.error('❌ Error in daily profit recalculation:', error);
@@ -74,6 +93,7 @@ router.post('/recalculate-daily-profits', async (req, res) => {
   }
 });
 
+// Apply authentication middleware to all routes below this point
 router.use(authRequired);
 
 // Generate sample data for testing
@@ -122,33 +142,105 @@ const generateSampleData = (period, limit) => {
   return data;
 };
 
+/**
+ * Get user's portfolio data
+ * Returns complete portfolio information including holdings, balance, and profit metrics
+ * 
+ * @route GET /api/portfolio
+ * @access Private (requires authentication)
+ * @returns {object} Portfolio data with holdings, balance, and profit metrics
+ */
 router.get('/', async (req, res) => {
-  const portfolio = await Portfolio.findOne({ user: req.userId });
-  const user = await User.findById(req.userId).select('walletBalance dailyProfit totalProfit');
-  if (!portfolio || !user) return res.status(404).json({ message: 'Portfolio not found' });
-  
-  // Calculate 1-day return
-  const oneDayReturn = await DailyProfitService.getOneDayReturn(req.userId);
-  const monthlyReturn = await DailyProfitService.getMonthlyReturn(req.userId);
-  
-  res.json({ 
-    holdings: portfolio.holdings, 
-    walletBalance: user.walletBalance,
-    dailyProfit: user.dailyProfit || 0,
-    totalProfit: user.totalProfit || 0,
-    oneDayReturn: oneDayReturn,
-    monthlyReturn: monthlyReturn
-  });
+  try {
+    // Find user's portfolio and basic user data
+    const portfolio = await Portfolio.findOne({ user: req.userId });
+    const user = await User.findById(req.userId).select('walletBalance dailyProfit totalProfit');
+    
+    // Validate that portfolio and user exist
+    if (!portfolio || !user) {
+      return res.status(404).json({ message: 'Portfolio not found' });
+    }
+    
+    // Calculate profit metrics using DailyProfitService
+    const oneDayReturn = await DailyProfitService.getOneDayReturn(req.userId);
+    const monthlyReturn = await DailyProfitService.getMonthlyReturn(req.userId);
+    
+    // Return complete portfolio data
+    res.json({ 
+      holdings: portfolio.holdings, // User's stock holdings
+      walletBalance: user.walletBalance, // Available cash balance
+      dailyProfit: user.dailyProfit || 0, // Today's profit/loss
+      totalProfit: user.totalProfit || 0, // Total profit/loss
+      oneDayReturn: oneDayReturn, // Calculated 1-day return
+      monthlyReturn: monthlyReturn // Calculated monthly return
+    });
+  } catch (error) {
+    console.error('Error fetching portfolio:', error);
+    res.status(500).json({ message: 'Failed to fetch portfolio data' });
+  }
 });
 
+/**
+ * Add funds to user's wallet
+ * Increases user's wallet balance by the specified amount
+ * 
+ * @route PUT /api/portfolio/fund
+ * @access Private (requires authentication)
+ * @param {number} amount - Amount to add to wallet (must be positive)
+ * @returns {object} Updated wallet balance
+ */
 router.put('/fund', async (req, res) => {
-  const { amount } = req.body;
-  if (typeof amount !== 'number' || amount <= 0) return res.status(400).json({ message: 'Invalid amount' });
-  const user = await User.findById(req.userId);
-  if (!user) return res.status(404).json({ message: 'User not found' });
-  user.walletBalance += amount;
-  await user.save();
-  res.json({ walletBalance: user.walletBalance });
+  try {
+    const { amount } = req.body;
+    
+    // Validate amount is a positive number
+    if (typeof amount !== 'number' || amount <= 0) {
+      return res.status(400).json({ message: 'Invalid amount' });
+    }
+    
+    // Find user and update wallet balance
+    const user = await User.findById(req.userId);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    
+    // Add amount to wallet balance
+    user.walletBalance += amount;
+    await user.save();
+    
+    // Return updated balance
+    res.json({ walletBalance: user.walletBalance });
+  } catch (error) {
+    console.error('Error adding funds:', error);
+    res.status(500).json({ message: 'Failed to add funds' });
+  }
+});
+
+// GET /api/portfolio/daily-profit
+router.get('/daily-profit', async (req, res) => {
+  try {
+    const { period = 'day', limit = 30 } = req.query;
+    const userId = req.userId;
+    
+    const { default: portfolioService } = await import('../services/portfolioService.js');
+    const data = await portfolioService.getDailyProfit(userId, period, parseInt(limit));
+    
+    res.json({
+      success: true,
+      data: data.map(item => ({
+        date: item.date,
+        profit: item.profit || item.dailyProfit || 0,
+        totalValue: item.totalValue || item.portfolioValue || 0,
+        trades: item.trades || 0
+      }))
+    });
+  } catch (error) {
+    console.error('Daily profit error:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Error fetching daily profit data' 
+    });
+  }
 });
 
 router.post('/buy', async (req, res) => {
@@ -396,7 +488,7 @@ router.get('/daily-profit', async (req, res) => {
         trades: 0
       }];
       
-      console.log('Returning today\'s data:', todayData);
+      // Returning today's data
       return res.json({ data: todayData });
     }
     
