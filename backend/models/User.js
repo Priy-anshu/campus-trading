@@ -32,7 +32,8 @@ const userSchema = new mongoose.Schema(
     lastMonthlyReset: { type: Date, default: Date.now },
     lastPortfolioValue: { type: Number, default: 100000 }, // Track last calculated portfolio value
     yesterdayTotalEarnings: { type: Number, default: 100000 }, // Track yesterday's total earnings for 1-day return calculation
-    lastMonthTotalEarnings: { type: Number, default: 100000 } // Track last month's total earnings for monthly return calculation
+    lastMonthTotalEarnings: { type: Number, default: 100000 }, // Track last month's total earnings for monthly return calculation
+    startOfMonthPortfolioValue: { type: Number, default: 100000 } // Track portfolio value at start of current month
   },
   { timestamps: true }
 );

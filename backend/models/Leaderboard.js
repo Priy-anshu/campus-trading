@@ -2,59 +2,57 @@ import mongoose from 'mongoose';
 
 const leaderboardSchema = new mongoose.Schema(
   {
-    user: { 
+    userId: { 
       type: mongoose.Schema.Types.ObjectId, 
       ref: 'User', 
       required: true,
       unique: true
     },
-    username: { 
+    userName: { 
       type: String, 
-      required: true,
-      trim: true
+      required: true 
     },
-    name: { 
-      type: String, 
-      required: true,
-      trim: true
-    },
-    // Daily earnings (resets at 12:00 AM IST)
-    dailyEarnings: { 
+    
+    // Current earnings (reset daily/monthly)
+    dayEarning: { 
       type: Number, 
       default: 0 
     },
-    // Monthly earnings (resets on 1st of month at 12:00 AM IST)
-    monthlyEarnings: { 
+    monthEarning: { 
       type: Number, 
       default: 0 
     },
-    // Overall earnings (never resets)
-    overallEarnings: { 
+    overallEarning: { 
       type: Number, 
       default: 0 
     },
-    // Last reset timestamps
-    lastDailyReset: { 
-      type: Date, 
-      default: Date.now 
-    },
-    lastMonthlyReset: { 
-      type: Date, 
-      default: Date.now 
-    },
-    // Additional metrics for leaderboard
-    totalTrades: { 
+    
+    // Historical earnings for analytics
+    lastDayEarning: { 
       type: Number, 
       default: 0 
     },
-    winRate: { 
+    lastMonthEarning: { 
       type: Number, 
       default: 0 
     },
-    // Current portfolio value for display
+    
+    // Reset tracking
+    lastDayReset: { 
+      type: Date 
+    },
+    lastMonthReset: { 
+      type: Date 
+    },
+    
+    // Portfolio value tracking
     currentPortfolioValue: { 
       type: Number, 
-      default: 0 
+      default: 100000 
+    },
+    lastPortfolioValue: { 
+      type: Number, 
+      default: 100000 
     }
   },
   { 
@@ -62,74 +60,13 @@ const leaderboardSchema = new mongoose.Schema(
   }
 );
 
-// Indexes for efficient leaderboard queries
-leaderboardSchema.index({ dailyEarnings: -1 });
-leaderboardSchema.index({ monthlyEarnings: -1 });
-leaderboardSchema.index({ overallEarnings: -1 });
-leaderboardSchema.index({ user: 1 });
+// Indexes for efficient queries
+leaderboardSchema.index({ dayEarning: -1 });
+leaderboardSchema.index({ monthEarning: -1 });
+leaderboardSchema.index({ overallEarning: -1 });
 
-// Static method to get leaderboard by period
-leaderboardSchema.statics.getLeaderboard = function(period = 'overall', limit = 100) {
-  let sortField = 'overallEarnings';
-  
-  if (period === 'day') {
-    sortField = 'dailyEarnings';
-  } else if (period === 'month') {
-    sortField = 'monthlyEarnings';
-  }
-  
-  return this.find({})
-    .sort({ [sortField]: -1, name: 1 })
-    .limit(limit)
-    .select('username name dailyEarnings monthlyEarnings overallEarnings totalTrades winRate currentPortfolioValue')
-    .populate('user', 'name username');
-};
-
-// Static method to get user's rank
-leaderboardSchema.statics.getUserRank = function(userId, period = 'overall') {
-  let sortField = 'overallEarnings';
-  
-  if (period === 'day') {
-    sortField = 'dailyEarnings';
-  } else if (period === 'month') {
-    sortField = 'monthlyEarnings';
-  }
-  
-  return this.find({})
-    .sort({ [sortField]: -1, name: 1 })
-    .select('user')
-    .then(users => {
-      const userIndex = users.findIndex(u => u.user.toString() === userId.toString());
-      return userIndex !== -1 ? userIndex + 1 : null;
-    });
-};
-
-// Instance method to update earnings
-leaderboardSchema.methods.updateEarnings = function(amount, type = 'trade') {
-  this.overallEarnings += amount;
-  this.dailyEarnings += amount;
-  this.monthlyEarnings += amount;
-  
-  if (type === 'trade') {
-    this.totalTrades += 1;
-  }
-  
-  return this.save();
-};
-
-// Instance method to reset daily earnings
-leaderboardSchema.methods.resetDailyEarnings = function() {
-  this.dailyEarnings = 0;
-  this.lastDailyReset = new Date();
-  return this.save();
-};
-
-// Instance method to reset monthly earnings
-leaderboardSchema.methods.resetMonthlyEarnings = function() {
-  this.monthlyEarnings = 0;
-  this.lastMonthlyReset = new Date();
-  return this.save();
-};
+// Ensure one record per user (unique constraint)
+leaderboardSchema.index({ userId: 1 }, { unique: true });
 
 const Leaderboard = mongoose.model('Leaderboard', leaderboardSchema);
 export default Leaderboard;

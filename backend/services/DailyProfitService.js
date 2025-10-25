@@ -24,23 +24,35 @@ export class DailyProfitService {
       const today = getStartOfDayIST();
       const startOfMonth = getStartOfMonthIST();
       
-      // Check if it's a new day
-      const isNewDay = user.lastDailyReset < today;
-      const isNewMonth = user.lastMonthlyReset < startOfMonth;
+      // Check if it's a new day (compare date strings to avoid timezone issues)
+      const isNewDay = !user.lastDailyReset || 
+        user.lastDailyReset.toISOString().split('T')[0] !== today.toISOString().split('T')[0];
+      
+      const isNewMonth = !user.lastMonthlyReset || 
+        user.lastMonthlyReset.toISOString().split('T')[0] !== startOfMonth.toISOString().split('T')[0];
 
       // If it's a new day, reset daily profit and store yesterday's earnings
       if (isNewDay) {
+        console.log(`[${new Date().toISOString()}] New day detected for user ${userId}, resetting daily profit`);
         // Store yesterday's total earnings for 1-day return calculation
         user.yesterdayTotalEarnings = user.lastPortfolioValue || currentPortfolioValue;
         user.dailyProfit = 0;
         user.lastDailyReset = today;
       }
 
-      // If it's a new month, reset monthly profit and store last month's earnings
+      // If it's a new month, reset monthly profit and store start of month portfolio value
       if (isNewMonth) {
+        console.log(`[${new Date().toISOString()}] New month detected for user ${userId}, resetting monthly profit`);
+        // Store the portfolio value at the start of this month for monthly return calculation
+        user.startOfMonthPortfolioValue = currentPortfolioValue;
         user.lastMonthTotalEarnings = user.lastPortfolioValue || currentPortfolioValue;
         user.monthlyProfit = 0;
         user.lastMonthlyReset = startOfMonth;
+      } else {
+        // Same month - ensure we have the start of month portfolio value set
+        if (!user.startOfMonthPortfolioValue) {
+          user.startOfMonthPortfolioValue = 100000; // Default to initial investment
+        }
       }
 
       // Calculate daily earnings (current value - initial investment)
@@ -55,15 +67,17 @@ export class DailyProfitService {
 
       // Update daily and monthly profits with earnings
       if (isNewDay) {
-        user.dailyProfit = dailyEarnings; // Set daily profit to total earnings for new day
+        user.dailyProfit = 0; // Reset to 0 for new day
+        console.log(`[${new Date().toISOString()}] Daily profit reset to 0 for new day`);
       } else {
-        user.dailyProfit = dailyEarnings; // Update to current total earnings
+        user.dailyProfit = dailyEarnings; // Update to current total earnings for same day
       }
       
       if (isNewMonth) {
-        user.monthlyProfit = dailyEarnings; // Set monthly profit to total earnings for new month
+        user.monthlyProfit = 0; // Reset to 0 for new month
+        console.log(`[${new Date().toISOString()}] Monthly profit reset to 0 for new month`);
       } else {
-        user.monthlyProfit = dailyEarnings; // Update to current total earnings
+        user.monthlyProfit = dailyEarnings; // Update to current total earnings for same month
       }
       
       user.totalProfit = dailyEarnings;
@@ -74,10 +88,11 @@ export class DailyProfitService {
       // Store daily earnings record
       await this.storeDailyEarningsRecord(userId, currentPortfolioValue);
       
-      // Store daily profit record
-      await this.storeDailyProfitRecord(userId, dailyEarnings, currentPortfolioValue);
+      // Store daily profit record (store 0 for new day, dailyEarnings for same day)
+      const profitToStore = isNewDay ? 0 : dailyEarnings;
+      await this.storeDailyProfitRecord(userId, profitToStore, currentPortfolioValue);
 
-      console.log(`[${new Date().toISOString()}] Updated daily profit for user ${userId}: ${dailyEarnings.toFixed(2)}`);
+      console.log(`[${new Date().toISOString()}] Updated daily profit for user ${userId}: ${profitToStore.toFixed(2)} (isNewDay: ${isNewDay})`);
     } catch (error) {
       console.error(`[${new Date().toISOString()}] Error updating daily profit for user ${userId}:`, error.message);
     }
@@ -226,7 +241,7 @@ export class DailyProfitService {
   }
 
   /**
-   * Get monthly return for a user (today's total earnings - start of month total earnings)
+   * Get monthly return for a user (current portfolio value - start of month portfolio value)
    */
   static async getMonthlyReturn(userId) {
     try {
@@ -234,9 +249,20 @@ export class DailyProfitService {
       if (!user) return 0;
 
       const currentPortfolioValue = await this.calculatePortfolioValue(userId);
-      const lastMonthTotalEarnings = user.lastMonthTotalEarnings || 0;
+      const startOfMonth = getStartOfMonthIST();
       
-      return currentPortfolioValue - lastMonthTotalEarnings;
+      // Check if we're in a new month
+      const isNewMonth = !user.lastMonthlyReset || 
+        user.lastMonthlyReset.toISOString().split('T')[0] !== startOfMonth.toISOString().split('T')[0];
+      
+      if (isNewMonth) {
+        // New month - monthly return is current portfolio value - initial investment (100000)
+        return currentPortfolioValue - 100000;
+      } else {
+        // Same month - monthly return is current portfolio value - start of month portfolio value
+        const startOfMonthValue = user.startOfMonthPortfolioValue || 100000;
+        return currentPortfolioValue - startOfMonthValue;
+      }
     } catch (error) {
       console.error(`[${new Date().toISOString()}] Error getting monthly return for user ${userId}:`, error.message);
       return 0;

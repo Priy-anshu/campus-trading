@@ -10,6 +10,9 @@ const cache = {
   error: null,
 };
 
+let lastDBUpdate = 0;
+const DB_UPDATE_INTERVAL = 14 * 60 * 1000; // 14 minutes
+
 function toNumber(value) {
   if (value === null || value === undefined) return 0;
   const normalized = String(value).replace(/,/g, '').trim();
@@ -33,16 +36,7 @@ export async function refreshCache() {
     
     // If API fails, use fallback sample data for MarketTicker
     if (!allRes.success || !Array.isArray(allRes.data) || allRes.data.length === 0) {
-      console.log('[StockCache] Using fallback sample data for MarketTicker');
-      const fallbackData = [
-        { symbol: 'NIFTY 50', lastPrice: 25795.15, pChange: -0.37, change: -96.25, totalTradedVolume: 284913477 },
-        { symbol: 'RELIANCE', lastPrice: 1451.1, pChange: 0.19, change: 2.7, totalTradedVolume: 9700837 },
-        { symbol: 'TCS', lastPrice: 3060.6, pChange: -0.41, change: -12.6, totalTradedVolume: 2684318 },
-        { symbol: 'HDFCBANK', lastPrice: 995.9, pChange: -1.28, change: -12.9, totalTradedVolume: 17707768 },
-        { symbol: 'ICICIBANK', lastPrice: 1378, pChange: 1.05, change: 14.3, totalTradedVolume: 10570263 }
-      ];
-      cache.all = fallbackData.map(normalize);
-      cache.lastUpdated = Date.now();
+      console.warn('[StockCache] Warning: No valid data from API. Retaining previous cache and DB values.');
       return;
     }
     
@@ -109,8 +103,9 @@ export async function refreshCache() {
       cache.lastUpdated = Date.now();
       cache.error = null;
 
-      // Update database with new stock data
-      if (stocksToUpdate.length > 0) {
+      // Update database every 14 minutes
+      const now = Date.now();
+      if (stocksToUpdate.length > 0 && now - lastDBUpdate >= DB_UPDATE_INTERVAL) {
         try {
           await Promise.all(
             stocksToUpdate.map(stockData =>
@@ -121,7 +116,8 @@ export async function refreshCache() {
               )
             )
           );
-          console.log(`[${new Date().toISOString()}] Updated ${stocksToUpdate.length} stocks in database`);
+          lastDBUpdate = now;
+          console.log(`[${new Date().toISOString()}] ✅ Updated ${stocksToUpdate.length} stocks in DB (14 min cycle)`);
         } catch (dbError) {
           console.error(`[${new Date().toISOString()}] Database update error:`, dbError.message);
         }

@@ -9,6 +9,40 @@ import DailyEarnings from '../models/DailyEarnings.js';
 
 const router = Router();
 
+// Force daily reset for all users (no auth required for admin task)
+router.post('/force-daily-reset', async (req, res) => {
+  try {
+    console.log('🔄 Forcing daily reset for all users...');
+    
+    const users = await User.find({});
+    console.log(`📊 Found ${users.length} users to reset`);
+    
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // Start of today
+    
+    for (const user of users) {
+      try {
+        // Force reset daily profit to 0 for new day
+        user.dailyProfit = 0;
+        user.lastDailyReset = today;
+        user.yesterdayTotalEarnings = user.lastPortfolioValue || 100000;
+        
+        await user.save();
+        
+        console.log(`✅ Reset daily profit for user ${user.name || user.email}: 0`);
+      } catch (error) {
+        console.error(`❌ Error resetting user ${user.name || user.email}:`, error.message);
+      }
+    }
+    
+    console.log('✅ Daily reset completed for all users');
+    res.status(200).json({ message: 'Daily profits reset to 0 for all users.' });
+  } catch (error) {
+    console.error('❌ Error during daily reset:', error.message);
+    res.status(500).json({ message: 'Failed to reset daily profits.', error: error.message });
+  }
+});
+
 // Recalculate daily profits for all users (no auth required for admin task)
 router.post('/recalculate-daily-profits', async (req, res) => {
   try {
@@ -341,8 +375,29 @@ router.get('/daily-profit', async (req, res) => {
         console.error('Error creating initial data:', error);
       }
       
-      // Return empty data if no real data available
-      return res.json({ data: [] });
+      // Return today's data even if no historical data
+      const today = new Date().toISOString().split('T')[0];
+      
+      // Calculate current portfolio value if not available
+      let portfolioValue = currentPortfolioValue;
+      if (!portfolioValue) {
+        try {
+          portfolioValue = await DailyProfitService.calculatePortfolioValue(userId);
+        } catch (error) {
+          console.error('Error calculating portfolio value:', error);
+          portfolioValue = 100000; // Default initial value
+        }
+      }
+      
+      const todayData = [{
+        date: today,
+        profit: 0, // Today's profit starts at 0
+        totalValue: portfolioValue,
+        trades: 0
+      }];
+      
+      console.log('Returning today\'s data:', todayData);
+      return res.json({ data: todayData });
     }
     
     res.json({ data: chartData });

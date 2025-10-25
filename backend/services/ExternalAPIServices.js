@@ -39,7 +39,7 @@ export async function fetchTopLosers(limit = 10) {
 }
 
 export async function fetchAllStockInsiderTrades() {
-  const url = 'https://www.nseindia.com/api/equity-stockIndices?index=NIFTY%2050';
+  const url = 'https://www.nseindia.com/api/equity-stockIndices?index=NIFTY%20200';
   const result = await fetchFromNSE(url);
   if (result.success && result.data?.data) {
     return { success: true, data: result.data.data };

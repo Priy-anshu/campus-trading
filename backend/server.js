@@ -7,10 +7,13 @@ import portfolioRoutes from './routes/portfolioRoutes.js';
 import stockRoutes from './routes/stockRoutes.js';
 import orderRoutes from './routes/orderRoutes.js';
 import leaderboardRoutes from './routes/leaderboardRoutes.js';
+import earningsRoutes from './routes/earningsRoutes.js';
 import { loadStocksFromDatabase } from './services/StockCache.js';
 import { initializeLeaderboard } from './services/LeaderboardService.js';
 import { startCronJobs } from './services/CronService.js';
 import DailyProfitService from './services/DailyProfitService.js';
+import earningsCache from './services/EarningsCache.js';
+import earningsService from './services/EarningsService.js';
 
 dotenv.config();
 
@@ -54,6 +57,7 @@ app.use('/api/portfolio', portfolioRoutes);
 app.use('/api/stocks', stockRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api', leaderboardRoutes);
+app.use('/api/earnings', earningsRoutes);
 
 // Global error handler
 app.use((err, req, res, next) => {
@@ -81,6 +85,12 @@ async function start() {
     
     // Initialize leaderboard for all users
     await initializeLeaderboard();
+    
+    // Initialize comprehensive earnings system
+    await earningsService.initialize();
+    
+    // Initialize legacy earnings cache (for backward compatibility)
+    await earningsCache.initialize();
     
     // Start cron jobs for daily/monthly resets
     startCronJobs();

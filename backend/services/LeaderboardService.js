@@ -1,120 +1,91 @@
-import Leaderboard from '../models/Leaderboard.js';
 import User from '../models/User.js';
+import DailyProfitService from './DailyProfitService.js';
 
-// Helper function to get IST date (start of day)
-function getISTDate() {
-  const now = new Date();
-  const offset = 330; // IST is UTC+5:30 (330 minutes)
-  const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
-  const ist = new Date(utc + (3600000 * (offset / 60)));
-  ist.setHours(0, 0, 0, 0);
-  return ist;
-}
+class LeaderboardService {
+  static async getLeaderboard(period) {
+    try {
+      const users = await User.find({}).select('name username dailyProfit monthlyProfit totalProfit');
+      
+      const leaderboardData = await Promise.all(
+        users.map(async (user) => {
+          const currentPortfolioValue = await DailyProfitService.calculatePortfolioValue(user._id);
+          
+          let profit = 0;
+          if (period === 'day') {
+            profit = await DailyProfitService.getOneDayReturn(user._id);
+          } else if (period === 'month') {
+            profit = await DailyProfitService.getMonthlyReturn(user._id);
+          } else if (period === 'overall') {
+            profit = currentPortfolioValue - 100000; // Initial investment
+          }
 
-// Helper function to get start of month in IST
-function getStartOfMonthIST() {
-  const istDate = getISTDate();
-  istDate.setDate(1);
-  return istDate;
-}
+          return {
+            id: user._id,
+            name: user.name,
+            username: user.username,
+            profit: profit || 0
+          };
+        })
+      );
 
-// Check if daily reset is needed
-function needsDailyReset(lastReset) {
-  const today = getISTDate();
-  const lastResetDate = new Date(lastReset);
-  lastResetDate.setHours(0, 0, 0, 0);
-  
-  return today.getTime() > lastResetDate.getTime();
-}
+      // Sort by profit (descending)
+      leaderboardData.sort((a, b) => b.profit - a.profit);
 
-// Check if monthly reset is needed
-function needsMonthlyReset(lastReset) {
-  const thisMonth = getStartOfMonthIST();
-  const lastResetDate = new Date(lastReset);
-  
-  return thisMonth.getTime() > lastResetDate.getTime();
-}
-
-// Create or update leaderboard entry for a user
-export async function createOrUpdateLeaderboardEntry(userId, userData = {}) {
-  try {
-    let leaderboardEntry = await Leaderboard.findOne({ user: userId });
-    
-    if (!leaderboardEntry) {
-      // Create new entry
-      leaderboardEntry = await Leaderboard.create({
-        user: userId,
-        username: userData.username || 'user',
-        name: userData.name || 'User',
-        dailyEarnings: 0,
-        monthlyEarnings: 0,
-        overallEarnings: 0,
-        currentPortfolioValue: userData.currentPortfolioValue || 0,
-        totalTrades: 0,
-        winRate: 0
+      // Add rank
+      leaderboardData.forEach((entry, index) => {
+        entry.rank = index + 1;
       });
-    } else {
-      // Update existing entry
-      if (userData.username) leaderboardEntry.username = userData.username;
-      if (userData.name) leaderboardEntry.name = userData.name;
-      if (userData.currentPortfolioValue !== undefined) {
-        leaderboardEntry.currentPortfolioValue = userData.currentPortfolioValue;
+
+      return leaderboardData.slice(0, 20); // Top 20 users
+    } catch (error) {
+      console.error('Get leaderboard error:', error);
+      throw error;
+    }
+  }
+
+  static async getUserRank(userId, period) {
+    try {
+      const leaderboard = await this.getLeaderboard(period);
+      const userRank = leaderboard.find(entry => entry.id.toString() === userId.toString());
+      
+      if (!userRank) {
+        return {
+          rank: null,
+          profit: 0,
+          message: 'User not found in leaderboard'
+        };
       }
-      await leaderboardEntry.save();
+
+      return {
+        rank: userRank.rank,
+        profit: userRank.profit,
+        period: period
+      };
+    } catch (error) {
+      console.error('Get user rank error:', error);
+      throw error;
     }
+  }
+}
+
+// Initialize leaderboard for all users
+export async function initializeLeaderboard() {
+  try {
+    console.log('🔄 Initializing leaderboard for all users...');
     
-    return leaderboardEntry;
+    const users = await User.find({});
+    console.log(`📊 Found ${users.length} users to initialize leaderboard`);
+    
+    // This function can be used to set up initial leaderboard data if needed
+    // For now, it just logs the initialization
+    console.log('✅ Leaderboard initialization completed');
   } catch (error) {
-    console.error('Error creating/updating leaderboard entry:', error);
+    console.error('❌ Error initializing leaderboard:', error.message);
     throw error;
   }
 }
 
-// Update user earnings
-export async function updateUserEarnings(userId, amount, type = 'trade') {
-  try {
-    const leaderboardEntry = await Leaderboard.findOne({ user: userId });
-    
-    if (!leaderboardEntry) {
-      // Create entry if it doesn't exist
-      await createOrUpdateLeaderboardEntry(userId);
-      return updateUserEarnings(userId, amount, type);
-    }
-    
-    // Check if resets are needed
-    if (needsDailyReset(leaderboardEntry.lastDailyReset)) {
-      await leaderboardEntry.resetDailyEarnings();
-    }
-    
-    if (needsMonthlyReset(leaderboardEntry.lastMonthlyReset)) {
-      await leaderboardEntry.resetMonthlyEarnings();
-    }
-    
-    // Update earnings
-    await leaderboardEntry.updateEarnings(amount, type);
-    
-    return leaderboardEntry;
-  } catch (error) {
-    console.error('Error updating user earnings:', error);
-    throw error;
-  }
-}
-
-// Get leaderboard data
-export async function getLeaderboard(period = 'overall', limit = 100) {
-  try {
-    // First, ensure all users have leaderboard entries
-    await ensureAllUsersHaveLeaderboardEntries();
-    
-    // Reset daily/monthly earnings if needed
-    await resetEarningsIfNeeded();
-    
-    return await Leaderboard.getLeaderboard(period, limit);
-  } catch (error) {
-    console.error('Error getting leaderboard:', error);
-    throw error;
-  }
-}
+export default LeaderboardService;
 
 // Get user's rank
 export async function getUserRank(userId, period = 'overall') {
