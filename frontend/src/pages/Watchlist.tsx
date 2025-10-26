@@ -8,6 +8,7 @@ import { Trash2, TrendingUp, TrendingDown, Plus, Eye } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
 import { formatVolume } from '@/utils/formatVolume';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface WatchlistStock {
   symbol: string;
@@ -29,6 +30,7 @@ const WatchlistPage: React.FC = () => {
   const [newWatchlistName, setNewWatchlistName] = useState('');
   const [showCreateForm, setShowCreateForm] = useState(false);
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
 
   // Load watchlists from localStorage on component mount
   useEffect(() => {
@@ -219,41 +221,85 @@ const WatchlistPage: React.FC = () => {
                 {getCurrentWatchlist()?.stocks.map((stock) => (
                   <div
                     key={stock.symbol}
-                    className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 cursor-pointer transition-colors"
+                    className={`${isMobile ? 'p-4' : 'flex items-center justify-between p-4'} border rounded-lg hover:bg-gray-50 cursor-pointer transition-colors`}
                     onClick={() => handleStockClick(stock.symbol)}
                   >
-                    <div className="flex-1">
-                      <div className="flex items-center gap-3">
-                        <h3 className="font-semibold text-lg">{stock.symbol}</h3>
-                        <Badge variant="outline">
-                          {formatVolume(stock.totalTradedVolume)} volume
-                        </Badge>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-6">
-                      <div className="text-right">
-                        <div className="text-lg font-semibold">
-                          {formatPrice(stock.lastPrice)}
+                    {isMobile ? (
+                      // Mobile vertical layout
+                      <div className="space-y-3">
+                        {/* Stock name at top */}
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <h3 className="font-semibold text-lg">{stock.symbol}</h3>
+                            <Badge variant="outline" className="text-xs">
+                              {formatVolume(stock.totalTradedVolume)} vol
+                            </Badge>
+                          </div>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              removeStockFromWatchlist(activeWatchlist, stock.symbol);
+                            }}
+                            className="text-red-600 hover:text-red-700 p-1"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
                         </div>
-                        <div className={`flex items-center gap-1 ${getChangeColor(stock.changePercent)}`}>
+                        
+                        {/* Price in middle */}
+                        <div className="text-center">
+                          <div className="text-xl font-bold">
+                            {formatPrice(stock.lastPrice)}
+                          </div>
+                        </div>
+                        
+                        {/* Change at bottom */}
+                        <div className={`flex items-center justify-center gap-1 ${getChangeColor(stock.changePercent)}`}>
                           {getChangeIcon(stock.changePercent)}
-                          <span className="text-sm">
+                          <span className="text-sm font-medium">
                             {formatChange(stock.change)} ({formatChange(stock.changePercent)}%)
                           </span>
                         </div>
                       </div>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          removeStockFromWatchlist(activeWatchlist, stock.symbol);
-                        }}
-                        className="text-red-600 hover:text-red-700"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
+                    ) : (
+                      // Desktop horizontal layout
+                      <>
+                        <div className="flex-1">
+                          <div className="flex items-center gap-3">
+                            <h3 className="font-semibold text-lg">{stock.symbol}</h3>
+                            <Badge variant="outline">
+                              {formatVolume(stock.totalTradedVolume)} volume
+                            </Badge>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-6">
+                          <div className="text-right">
+                            <div className="text-lg font-semibold">
+                              {formatPrice(stock.lastPrice)}
+                            </div>
+                            <div className={`flex items-center gap-1 ${getChangeColor(stock.changePercent)}`}>
+                              {getChangeIcon(stock.changePercent)}
+                              <span className="text-sm">
+                                {formatChange(stock.change)} ({formatChange(stock.changePercent)}%)
+                              </span>
+                            </div>
+                          </div>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              removeStockFromWatchlist(activeWatchlist, stock.symbol);
+                            }}
+                            className="text-red-600 hover:text-red-700"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </>
+                    )}
                   </div>
                 ))}
               </div>

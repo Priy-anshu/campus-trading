@@ -164,14 +164,15 @@ const HoldingsDashboard = () => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div className="flex items-center gap-2">
-          <h1 className="text-2xl font-bold text-foreground">Holdings</h1>
+          <h1 className="text-xl sm:text-2xl font-bold text-foreground">Holdings</h1>
           <span className="text-sm text-muted-foreground">({holdings.length})</span>
           {pricesLoading && (
             <div className="flex items-center gap-1 text-xs text-muted-foreground">
               <RefreshCw className="h-3 w-3 animate-spin" />
-              <span>Updating prices...</span>
+              <span className="hidden sm:inline">Updating prices...</span>
+              <span className="sm:hidden">Updating...</span>
             </div>
           )}
         </div>
@@ -181,17 +182,19 @@ const HoldingsDashboard = () => {
                 size="sm"
                 onClick={handleRefresh}
                 disabled={isRefreshing || pricesLoading}
-                className="gap-2"
+                className="gap-2 text-xs sm:text-sm"
               >
-                <RefreshCw className={`h-4 w-4 ${isRefreshing || pricesLoading ? 'animate-spin' : ''}`} />
-                {isRefreshing || pricesLoading ? 'Refreshing...' : 'Refresh'}
+                <RefreshCw className={`h-3 w-3 sm:h-4 sm:w-4 ${isRefreshing || pricesLoading ? 'animate-spin' : ''}`} />
+                <span className="hidden sm:inline">{isRefreshing || pricesLoading ? 'Refreshing...' : 'Refresh'}</span>
+                <span className="sm:hidden">{isRefreshing || pricesLoading ? '...' : '↻'}</span>
               </Button>
           <button
             onClick={() => setShowValues(!showValues)}
-            className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted"
+            className="flex items-center gap-1 sm:gap-2 rounded-lg px-2 sm:px-3 py-2 text-xs sm:text-sm font-medium text-muted-foreground transition-colors hover:bg-muted"
           >
-            {showValues ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
-            {showValues ? "Hide" : "Show"} Values
+            {showValues ? <Eye className="h-3 w-3 sm:h-4 sm:w-4" /> : <EyeOff className="h-3 w-3 sm:h-4 sm:w-4" />}
+            <span className="hidden sm:inline">{showValues ? "Hide" : "Show"} Values</span>
+            <span className="sm:hidden">{showValues ? "Hide" : "Show"}</span>
           </button>
         </div>
       </div>

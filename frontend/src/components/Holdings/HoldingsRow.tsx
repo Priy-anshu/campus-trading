@@ -36,11 +36,6 @@ const HoldingsRow = ({ holding }: HoldingsRowProps) => {
     >
       <td className="py-4 pl-6">
         <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-muted">
-            <span className="text-sm font-semibold text-foreground">
-              {holding.company ? holding.company.substring(0, 2).toUpperCase() : '--'}
-            </span>
-          </div>
           <div>
             <p className="font-medium text-foreground">{holding.company || 'Unknown'}</p>
             <p className="text-sm text-muted-foreground">

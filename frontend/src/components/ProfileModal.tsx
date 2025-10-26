@@ -145,13 +145,13 @@ const ProfileModal = ({ isOpen, onClose }: ProfileModalProps) => {
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl">
+      <DialogContent className="max-w-2xl max-h-[95vh] overflow-y-auto mx-4 sm:mx-0">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
+          <DialogTitle className="flex items-center gap-2 text-lg sm:text-xl">
             <User className="h-5 w-5" />
             Profile
           </DialogTitle>
-          <DialogDescription>
+          <DialogDescription className="text-sm">
             View and manage your account information and security settings.
           </DialogDescription>
         </DialogHeader>
@@ -173,17 +173,17 @@ const ProfileModal = ({ isOpen, onClose }: ProfileModalProps) => {
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div>
                         <Label className="text-sm font-medium text-muted-foreground">Name</Label>
-                        <p className="text-sm font-medium">{profile.name || 'Not specified'}</p>
+                        <p className="text-sm font-medium truncate">{profile.name || 'Not specified'}</p>
                       </div>
                       <div>
                         <Label className="text-sm font-medium text-muted-foreground">Username</Label>
                         <div className="flex items-center gap-2">
-                          <p className="text-sm font-medium">{profile.username || 'Not specified'}</p>
+                          <p className="text-sm font-medium truncate">{profile.username || 'Not specified'}</p>
                           {profile.username && (
-                            <Badge variant="outline" className="text-xs">
+                            <Badge variant="outline" className="text-xs flex-shrink-0">
                               @{profile.username}
                             </Badge>
                           )}
@@ -191,35 +191,35 @@ const ProfileModal = ({ isOpen, onClose }: ProfileModalProps) => {
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div>
                         <Label className="text-sm font-medium text-muted-foreground">Email</Label>
-                        <p className="text-sm font-medium flex items-center gap-2">
-                          <Mail className="h-3 w-3" />
-                          {profile.email || 'Not specified'}
+                        <p className="text-sm font-medium flex items-center gap-2 truncate">
+                          <Mail className="h-3 w-3 flex-shrink-0" />
+                          <span className="truncate">{profile.email || 'Not specified'}</span>
                         </p>
                       </div>
                       <div>
                         <Label className="text-sm font-medium text-muted-foreground">Mobile</Label>
                         <p className="text-sm font-medium flex items-center gap-2">
-                          <Phone className="h-3 w-3" />
+                          <Phone className="h-3 w-3 flex-shrink-0" />
                           {profile.mobileNumber || 'Not specified'}
                         </p>
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div>
                         <Label className="text-sm font-medium text-muted-foreground">Date of Birth</Label>
                         <p className="text-sm font-medium flex items-center gap-2">
-                          <Calendar className="h-3 w-3" />
+                          <Calendar className="h-3 w-3 flex-shrink-0" />
                           {profile.dateOfBirth ? formatDate(profile.dateOfBirth) : 'Not specified'}
                         </p>
                       </div>
                       <div>
                         <Label className="text-sm font-medium text-muted-foreground">Gender</Label>
                         <p className="text-sm font-medium flex items-center gap-2">
-                          <Users className="h-3 w-3" />
+                          <Users className="h-3 w-3 flex-shrink-0" />
                           {profile.gender ? profile.gender.charAt(0).toUpperCase() + profile.gender.slice(1) : 'Not specified'}
                         </p>
                       </div>
@@ -235,7 +235,7 @@ const ProfileModal = ({ isOpen, onClose }: ProfileModalProps) => {
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div>
                         <Label className="text-sm font-medium text-muted-foreground">Wallet Balance</Label>
                         <p className="text-lg font-bold text-green-600">
@@ -262,7 +262,7 @@ const ProfileModal = ({ isOpen, onClose }: ProfileModalProps) => {
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="flex items-center justify-between">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                       <div>
                         <Label className="text-sm font-medium">Theme</Label>
                         <p className="text-sm text-muted-foreground">
@@ -272,7 +272,7 @@ const ProfileModal = ({ isOpen, onClose }: ProfileModalProps) => {
                       <Button
                         variant="outline"
                         onClick={toggleTheme}
-                        className="flex items-center gap-2"
+                        className="flex items-center gap-2 w-full sm:w-auto"
                       >
                         {theme === 'light' ? (
                           <>

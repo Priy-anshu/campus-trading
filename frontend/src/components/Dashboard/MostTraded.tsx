@@ -95,19 +95,16 @@ const MostTraded = () => {
             <p className="text-sm text-muted-foreground mt-2">Stocks will appear here based on trading volume</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
             {stocks.map((stock) => {
               const isPositive = stock.changePercent >= 0;
               return (
                 <div
                   key={stock.symbol}
                   onClick={() => navigate(`/stock/${stock.symbol}`)}
-                  className="p-4 rounded-lg border border-border hover:shadow-md transition-all hover:scale-105 cursor-pointer bg-card"
+                  className="p-3 sm:p-4 rounded-lg border border-border hover:shadow-md transition-all hover:scale-105 cursor-pointer bg-card"
                 >
-                  <div className="flex items-start justify-between mb-3">
-                    <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
-                      <span className="text-sm font-bold text-primary">{stock.symbol[0]}</span>
-                    </div>
+                  <div className="flex items-start justify-between mb-2 sm:mb-3">
                     <div className={`flex items-center gap-1 ${isPositive ? 'text-success' : 'text-destructive'}`}>
                       {isPositive ? (
                         <TrendingUp className="h-3 w-3" />
@@ -121,9 +118,9 @@ const MostTraded = () => {
                   </div>
                   
                   <div>
-                    <p className="font-semibold text-foreground mb-1">{stock.symbol}</p>
-                    <p className="text-xs text-muted-foreground mb-2 line-clamp-1">{stock.companyName}</p>
-                    <p className="text-lg font-bold text-foreground">
+                    <p className="font-semibold text-foreground mb-1 text-sm sm:text-base truncate">{stock.symbol}</p>
+                    <p className="text-xs text-muted-foreground mb-2 line-clamp-1 truncate">{stock.companyName}</p>
+                    <p className="text-base sm:text-lg font-bold text-foreground">
                       ₹{stock.price.toLocaleString('en-IN')}
                     </p>
                   </div>
