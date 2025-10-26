@@ -57,10 +57,17 @@ const allowedOrigins = process.env.NODE_ENV === 'production'
 // CORS middleware
 const corsOptions = {
   origin: function (origin, callback) {
+    console.log(`🔍 CORS check - Origin: ${origin}`);
+    console.log(`🔍 CORS check - Allowed origins:`, allowedOrigins);
+    
     // Allow requests with no origin (like mobile apps or curl requests)
-    if (!origin) return callback(null, true);
+    if (!origin) {
+      console.log(`✅ CORS allowed - No origin (mobile/curl request)`);
+      return callback(null, true);
+    }
     
     if (allowedOrigins.includes(origin)) {
+      console.log(`✅ CORS allowed - Origin: ${origin}`);
       callback(null, true);
     } else {
       console.error(`❌ CORS blocked origin: ${origin}`);
@@ -168,7 +175,12 @@ async function start() {
     }, 5 * 60 * 1000); // 5 minutes
     
            app.listen(PORT, '0.0.0.0', () => {
-             // Server started successfully
+             console.log(`✅ Server running on http://localhost:${PORT}`);
+             console.log(`✅ Health check available at http://localhost:${PORT}/health`);
+             console.log(`✅ CORS enabled for Vercel: https://campus-trading.vercel.app`);
+             if (mongoose.connection.readyState !== 1) {
+               console.log('⚠️ Note: Database features are disabled due to connection issues');
+             }
            });
   } catch (error) {
     console.error('❌ Failed to connect to MongoDB:', error.message);

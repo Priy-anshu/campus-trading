@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Trash2, TrendingUp, TrendingDown, Plus, Eye } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
+import { formatVolume } from '@/utils/formatVolume';
 
 interface WatchlistStock {
   symbol: string;
@@ -225,7 +226,7 @@ const WatchlistPage: React.FC = () => {
                       <div className="flex items-center gap-3">
                         <h3 className="font-semibold text-lg">{stock.symbol}</h3>
                         <Badge variant="outline">
-                          {stock.totalTradedVolume.toLocaleString()} volume
+                          {formatVolume(stock.totalTradedVolume)} volume
                         </Badge>
                       </div>
                     </div>

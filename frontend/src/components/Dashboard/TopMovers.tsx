@@ -4,6 +4,7 @@ import { TrendingUp, TrendingDown } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ENDPOINTS, apiClient } from "@/api/config";
+import { formatVolume } from "@/utils/formatVolume";
 import Loader from "./Loader";
 import ErrorCard from "./ErrorCard";
 
@@ -90,7 +91,7 @@ const TopMovers = () => {
             
             <div className="ml-6 text-right">
               <p className="text-xs text-muted-foreground">Volume</p>
-              <p className="text-sm font-medium text-foreground">{stock.volume}</p>
+              <p className="text-sm font-medium text-foreground">{formatVolume(stock.volume)}</p>
             </div>
           </div>
         );
