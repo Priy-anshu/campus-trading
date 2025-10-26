@@ -10,6 +10,6 @@ services:
       - key: NODE_ENV
         value: production
       - key: MONGO_URI
-        value: mongodb+srv://priyanshu102938_db_user:JhXRBGUWc8RbmkWu@cluster0.nobx0qb.mongodb.net/paper_trading?retryWrites=true&w=majority&appName=Cluster0
+        value: mongodb+srv://priyanshu102938_db_user:MySecure123@cluster0.nobx0qb.mongodb.net/?appName=Cluster0
       - key: JWT_SECRET
         value: your_super_secure_jwt_secret_key_here_change_this_in_production

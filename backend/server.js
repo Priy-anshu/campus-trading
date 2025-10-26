@@ -45,7 +45,11 @@ const allowedOrigins = process.env.NODE_ENV === 'production'
   ? [
       'https://campus-trading.netlify.app',
       'https://campus-trading-app.netlify.app',
-      'https://campus-trading-frontend.netlify.app'
+      'https://campus-trading-frontend.netlify.app',
+      'http://localhost:3000',
+      'http://localhost:3001',
+      'http://127.0.0.1:3000',
+      'http://127.0.0.1:3001'
     ]
   : ['http://localhost:3000', 'http://localhost:3001', 'http://127.0.0.1:3000', 'http://127.0.0.1:3001'];
 
@@ -113,7 +117,7 @@ app.use('*', (req, res) => {
 
 // Port and MongoDB URI
 const PORT = process.env.PORT || 4000;
-const MONGO_URI = process.env.MONGO_URI || 'mongodb+srv://priyanshu102938_db_user:JhXRBGUWc8RbmkWu@cluster0.nobx0qb.mongodb.net/test?retryWrites=true&w=majority&appName=Cluster0';
+const MONGO_URI = process.env.MONGO_URI || 'mongodb+srv://priyanshu102938_db_user:MySecure123@cluster0.nobx0qb.mongodb.net/?appName=Cluster0';
 
 // Start server
 async function start() {
