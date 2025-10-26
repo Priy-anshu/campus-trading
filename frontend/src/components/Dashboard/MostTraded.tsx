@@ -118,7 +118,6 @@ const MostTraded = () => {
                   
                   <div className="text-center">
                     <p className="font-semibold text-foreground mb-1 text-sm sm:text-base truncate">{stock.symbol}</p>
-                    <p className="text-xs text-muted-foreground mb-2 line-clamp-1 truncate">{stock.companyName}</p>
                     <p className="text-base sm:text-lg font-bold text-foreground">
                       ₹{stock.price.toLocaleString('en-IN')}
                     </p>

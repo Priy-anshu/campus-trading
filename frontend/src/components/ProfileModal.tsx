@@ -145,7 +145,7 @@ const ProfileModal = ({ isOpen, onClose }: ProfileModalProps) => {
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl max-h-[95vh] overflow-y-auto mx-4 sm:mx-0 flex items-center justify-center">
+      <DialogContent className="max-w-md sm:max-w-2xl max-h-[90vh] overflow-y-auto mx-2 sm:mx-4">
         <DialogHeader>
           <DialogTitle className="text-lg sm:text-xl">
           </DialogTitle>
@@ -161,20 +161,20 @@ const ProfileModal = ({ isOpen, onClose }: ProfileModalProps) => {
             {profile ? (
               <div className="space-y-4">
                 <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
+                  <CardHeader className="pb-3">
+                    <CardTitle className="flex items-center gap-2 text-base">
                       <User className="h-4 w-4" />
                       Personal Information
                     </CardTitle>
                   </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <CardContent className="space-y-3">
+                    <div className="space-y-3">
                       <div>
-                        <Label className="text-sm font-medium text-muted-foreground">Name</Label>
+                        <Label className="text-xs font-medium text-muted-foreground">Name</Label>
                         <p className="text-sm font-medium truncate">{profile.name || 'Not specified'}</p>
                       </div>
                       <div>
-                        <Label className="text-sm font-medium text-muted-foreground">Username</Label>
+                        <Label className="text-xs font-medium text-muted-foreground">Username</Label>
                         <div className="flex items-center gap-2">
                           <p className="text-sm font-medium truncate">{profile.username || 'Not specified'}</p>
                           {profile.username && (
@@ -184,35 +184,29 @@ const ProfileModal = ({ isOpen, onClose }: ProfileModalProps) => {
                           )}
                         </div>
                       </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div>
-                        <Label className="text-sm font-medium text-muted-foreground">Email</Label>
+                        <Label className="text-xs font-medium text-muted-foreground">Email</Label>
                         <p className="text-sm font-medium flex items-center gap-2 truncate">
                           <Mail className="h-3 w-3 flex-shrink-0" />
                           <span className="truncate">{profile.email || 'Not specified'}</span>
                         </p>
                       </div>
                       <div>
-                        <Label className="text-sm font-medium text-muted-foreground">Mobile</Label>
+                        <Label className="text-xs font-medium text-muted-foreground">Mobile</Label>
                         <p className="text-sm font-medium flex items-center gap-2">
                           <Phone className="h-3 w-3 flex-shrink-0" />
                           {profile.mobileNumber || 'Not specified'}
                         </p>
                       </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div>
-                        <Label className="text-sm font-medium text-muted-foreground">Date of Birth</Label>
+                        <Label className="text-xs font-medium text-muted-foreground">Date of Birth</Label>
                         <p className="text-sm font-medium flex items-center gap-2">
                           <Calendar className="h-3 w-3 flex-shrink-0" />
                           {profile.dateOfBirth ? formatDate(profile.dateOfBirth) : 'Not specified'}
                         </p>
                       </div>
                       <div>
-                        <Label className="text-sm font-medium text-muted-foreground">Gender</Label>
+                        <Label className="text-xs font-medium text-muted-foreground">Gender</Label>
                         <p className="text-sm font-medium flex items-center gap-2">
                           <Users className="h-3 w-3 flex-shrink-0" />
                           {profile.gender ? profile.gender.charAt(0).toUpperCase() + profile.gender.slice(1) : 'Not specified'}
@@ -223,22 +217,22 @@ const ProfileModal = ({ isOpen, onClose }: ProfileModalProps) => {
                 </Card>
 
                 <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
+                  <CardHeader className="pb-3">
+                    <CardTitle className="flex items-center gap-2 text-base">
                       <Wallet className="h-4 w-4" />
                       Trading Information
                     </CardTitle>
                   </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <CardContent className="space-y-3">
+                    <div className="space-y-3">
                       <div>
-                        <Label className="text-sm font-medium text-muted-foreground">Wallet Balance</Label>
+                        <Label className="text-xs font-medium text-muted-foreground">Wallet Balance</Label>
                         <p className="text-lg font-bold text-green-600">
                           {formatCurrency(profile.walletBalance || 0)}
                         </p>
                       </div>
                       <div>
-                        <Label className="text-sm font-medium text-muted-foreground">Total Profit</Label>
+                        <Label className="text-xs font-medium text-muted-foreground">Total Profit</Label>
                         <p className={`text-lg font-bold ${
                           (profile.totalProfit || 0) >= 0 ? 'text-green-600' : 'text-red-600'
                         }`}>
