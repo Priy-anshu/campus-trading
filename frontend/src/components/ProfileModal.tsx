@@ -147,9 +147,7 @@ const ProfileModal = ({ isOpen, onClose }: ProfileModalProps) => {
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-2xl max-h-[95vh] overflow-y-auto mx-4 sm:mx-0 flex items-center justify-center">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 text-lg sm:text-xl">
-            <User className="h-5 w-5" />
-            Profile
+          <DialogTitle className="text-lg sm:text-xl">
           </DialogTitle>
         </DialogHeader>
 
@@ -253,14 +251,11 @@ const ProfileModal = ({ isOpen, onClose }: ProfileModalProps) => {
 
                 <Card>
                   <CardContent className="pt-6">
-                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                      <div>
-                        <Label className="text-sm font-medium">Theme</Label>
-                      </div>
+                    <div className="flex justify-center">
                       <Button
                         variant="outline"
                         onClick={toggleTheme}
-                        className="flex items-center gap-2 w-full sm:w-auto"
+                        className="flex items-center gap-2"
                       >
                         {theme === 'light' ? (
                           <>

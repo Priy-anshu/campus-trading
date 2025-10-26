@@ -394,7 +394,7 @@ const WatchlistManager = () => {
 
                     {/* Autocomplete Suggestions */}
                     {showSearchResults && searchQuery && (
-                      <div className="max-h-64 overflow-y-auto border rounded-md bg-background shadow-lg">
+                      <div className="border rounded-md bg-background shadow-lg">
                         {searchResults.length > 0 ? (
                           <div className="space-y-1 p-2">
                             <div className="px-2 py-1 text-xs font-medium text-muted-foreground border-b">

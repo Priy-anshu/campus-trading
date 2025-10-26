@@ -49,7 +49,7 @@ const HoldingsTable = ({ holdings }: HoldingsTableProps) => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="font-semibold text-lg">{holding.company}</p>
-                  <p className="text-sm text-muted-foreground">{holding.shares} shares</p>
+                  <p className="text-sm text-muted-foreground">{holding.shares} shares @ ₹{holding.avgPrice.toFixed(2)}</p>
                 </div>
                 <div className="text-right">
                   <p className="text-lg font-bold">₹{holding.marketPrice.toFixed(2)}</p>

@@ -87,7 +87,7 @@ const Navbar = () => {
     <nav className="sticky top-0 z-50 border-b border-border bg-card shadow-sm">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 items-center justify-between">
-          <Link to="/dashboard" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
+          <Link to="/dashboard" className="hidden md:flex items-center gap-2 hover:opacity-80 transition-opacity">
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-primary/80">
               <TrendingUp className="h-6 w-6 text-primary-foreground" />
             </div>

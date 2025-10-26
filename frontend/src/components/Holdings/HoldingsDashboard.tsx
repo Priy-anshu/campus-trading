@@ -181,7 +181,7 @@ const HoldingsDashboard = () => {
                 size="sm"
                 onClick={handleRefresh}
                 disabled={isRefreshing || pricesLoading}
-                className="gap-2 text-xs sm:text-sm"
+                className="gap-2 text-xs sm:text-sm hidden sm:flex"
               >
                 <RefreshCw className={`h-3 w-3 sm:h-4 sm:w-4 ${isRefreshing || pricesLoading ? 'animate-spin' : ''}`} />
                 <span className="hidden sm:inline">{isRefreshing || pricesLoading ? 'Refreshing...' : 'Refresh'}</span>

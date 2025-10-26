@@ -85,7 +85,6 @@ const MostTraded = () => {
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           📈 Most Traded Stocks
-          <span className="text-sm text-muted-foreground">(by volume)</span>
         </CardTitle>
       </CardHeader>
       <CardContent>
@@ -95,7 +94,7 @@ const MostTraded = () => {
             <p className="text-sm text-muted-foreground mt-2">Stocks will appear here based on trading volume</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-3 sm:gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
             {stocks.map((stock) => {
               const isPositive = stock.changePercent >= 0;
               return (

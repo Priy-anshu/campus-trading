@@ -206,7 +206,7 @@ const TradePanel = ({ symbol, currentPrice, onTradeSuccess }: TradePanelProps) =
           <div className="space-y-2">
             <Label className="text-sm font-medium">Order Type</Label>
             <div className="flex gap-2">
-              {["delivery", "intraday"].map((type) => (
+              {["delivery"].map((type) => (
                 <Button
                   key={type}
                   variant={orderType === type ? "default" : "outline"}
@@ -313,7 +313,7 @@ const TradePanel = ({ symbol, currentPrice, onTradeSuccess }: TradePanelProps) =
           <div className="space-y-2">
             <Label className="text-sm font-medium">Order Type</Label>
             <div className="flex gap-2">
-              {["delivery", "intraday"].map((type) => (
+              {["delivery"].map((type) => (
                 <Button
                   key={type}
                   variant={orderType === type ? "default" : "outline"}

@@ -64,7 +64,7 @@ const MarketTicker = () => {
       const isMobile = window.innerWidth < 768; // md breakpoint
       
       // Try to calculate optimal duration based on stock count
-      let animationDuration = 3600000; // Default: 1 hour fallback
+      let animationDuration = 300000; // Default: 5 minutes fallback
       let maxDistance = isMobile ? 7500 : 2000; // Default distances
       
       if (stocks.length > 0) {
@@ -79,16 +79,16 @@ const MarketTicker = () => {
           const totalDistanceNeeded = totalStockWidth + containerWidth;
           
           // Calculate duration based on speed preference (much faster)
-          const mobileSpeed = 3600; // pixels per second for mobile (6x faster)
-          const desktopSpeed = 1800; // pixels per second for desktop (6x faster)
+          const mobileSpeed = 18000; // pixels per second for mobile (30x faster)
+          const desktopSpeed = 9000; // pixels per second for desktop (30x faster)
           const speed = isMobile ? mobileSpeed : desktopSpeed;
           
           // Calculate duration needed to show all stocks at the desired speed
           const calculatedDuration = (totalDistanceNeeded / speed) * 1000; // convert to milliseconds
           
-          // Use calculated duration if it's reasonable (between 10 minutes and 1 hour)
-          const minDuration = 600000; // 10 minutes
-          const maxDuration = 3600000; // 1 hour
+          // Use calculated duration if it's reasonable (between 1 minute and 10 minutes)
+          const minDuration = 60000; // 1 minute
+          const maxDuration = 600000; // 10 minutes
           
           if (calculatedDuration >= minDuration && calculatedDuration <= maxDuration) {
             animationDuration = calculatedDuration;
