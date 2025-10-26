@@ -5,8 +5,8 @@
  * Currently using mock data, but ready for backend integration.
  */
 
-// Base API URL - production backend URL
-export const API_BASE = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? 'https://campus-trading-backend.onrender.com' : '');
+// Base API URL - connect to Render backend for local development
+export const API_BASE = import.meta.env.VITE_API_URL || 'https://campus-trading-backend.onrender.com/api';
 
 // API Endpoints
 export const ENDPOINTS = {
@@ -50,7 +50,7 @@ export const getHeaders = () => ({
 import axios from 'axios';
 
 export const apiClient = axios.create({
-  baseURL: API_BASE || '/api',
+  baseURL: API_BASE,
 });
 
 apiClient.interceptors.request.use((config) => {

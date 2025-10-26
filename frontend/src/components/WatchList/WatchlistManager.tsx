@@ -7,6 +7,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Plus, Eye, Trash2, TrendingUp, TrendingDown, ArrowUpRight, ArrowDownRight, RefreshCw, Search, X } from "lucide-react";
 import { fetchStockPrice } from "@/services/stockService";
 import { useNavigate } from "react-router-dom";
+import { apiClient, ENDPOINTS } from "@/api/config";
 
 interface WatchlistItem {
   symbol: string;
@@ -58,8 +59,7 @@ const WatchlistManager = () => {
   useEffect(() => {
     const loadAllStocks = async () => {
       try {
-        const response = await fetch('http://localhost:4000/api/stocks/all');
-        const data = await response.json();
+        const { data } = await apiClient.get(ENDPOINTS.allStocks);
         const stocks = Array.isArray(data) ? data : (data.data || []);
         setAllStocks(stocks);
       } catch (error) {
