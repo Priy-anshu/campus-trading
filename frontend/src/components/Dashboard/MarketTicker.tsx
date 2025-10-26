@@ -79,8 +79,8 @@ const MarketTicker = () => {
           const totalDistanceNeeded = totalStockWidth + containerWidth;
           
           // Calculate duration based on speed preference
-          const mobileSpeed = 240; // pixels per second for mobile
-          const desktopSpeed = 120; // pixels per second for desktop
+          const mobileSpeed = 600; // pixels per second for mobile (very fast)
+          const desktopSpeed = 300; // pixels per second for desktop (very fast)
           const speed = isMobile ? mobileSpeed : desktopSpeed;
           
           // Calculate duration needed to show all stocks at the desired speed
@@ -95,10 +95,10 @@ const MarketTicker = () => {
             maxDistance = totalDistanceNeeded;
             console.log(`Using calculated duration: ${Math.round(animationDuration/1000)}s for ${stocks.length} stocks`);
           } else {
-            console.log(`Using fallback duration: 20 minutes (calculated: ${Math.round(calculatedDuration/1000)}s was outside reasonable range)`);
+            console.log(`Using fallback duration: 1 hour (calculated: ${Math.round(calculatedDuration/1000)}s was outside reasonable range)`);
           }
         } catch (error) {
-          console.log('Using fallback duration: 20 minutes (calculation failed)');
+          console.log('Using fallback duration: 1 hour (calculation failed)');
         }
       }
       
