@@ -103,8 +103,12 @@ const MostTraded = () => {
                   onClick={() => navigate(`/stock/${stock.symbol}`)}
                   className="p-3 sm:p-4 rounded-lg border border-border hover:shadow-md transition-all hover:scale-105 cursor-pointer bg-card"
                 >
-                  <div className="flex items-center justify-center mb-2 sm:mb-3">
-                    <div className={`flex items-center gap-1 ${isPositive ? 'text-success' : 'text-destructive'}`}>
+                  <div className="text-center space-y-2">
+                    {/* Stock Name/Symbol at top */}
+                    <p className="font-semibold text-foreground text-sm sm:text-base truncate">{stock.symbol}</p>
+                    
+                    {/* Change percentage in middle */}
+                    <div className={`flex items-center justify-center gap-1 ${isPositive ? 'text-success' : 'text-destructive'}`}>
                       {isPositive ? (
                         <TrendingUp className="h-3 w-3" />
                       ) : (
@@ -114,10 +118,8 @@ const MostTraded = () => {
                         {isPositive ? '+' : ''}{stock.changePercent.toFixed(2)}%
                       </span>
                     </div>
-                  </div>
-                  
-                  <div className="text-center">
-                    <p className="font-semibold text-foreground mb-1 text-sm sm:text-base truncate">{stock.symbol}</p>
+                    
+                    {/* Price at bottom */}
                     <p className="text-base sm:text-lg font-bold text-foreground">
                       ₹{stock.price.toLocaleString('en-IN')}
                     </p>

@@ -104,7 +104,7 @@ const MarketTicker = () => {
       
       const progress = (elapsed % animationDuration) / animationDuration;
       const translateX = -progress * maxDistance;
-      animationRef.current.style.transform = `translateX(${translateX}%)`;
+      animationRef.current.style.transform = `translateX(${translateX}px)`;
     }
   };
 
@@ -116,7 +116,7 @@ const MarketTicker = () => {
     (window as any).__marketTickerStartTime = now;
     
     if (animationRef.current) {
-      animationRef.current.style.transform = 'translateX(0%)';
+      animationRef.current.style.transform = 'translateX(0px)';
     }
   };
 
