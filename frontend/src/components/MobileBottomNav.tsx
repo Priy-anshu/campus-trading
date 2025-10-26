@@ -96,7 +96,7 @@ const MobileBottomNav: React.FC = () => {
               }`}
             >
               <Icon className="h-5 w-5" />
-              <span className="truncate">{item.name}</span>
+              <span className="truncate text-center">{item.name}</span>
             </Link>
           );
         })}

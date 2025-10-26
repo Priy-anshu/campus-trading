@@ -403,31 +403,31 @@ const WatchlistManager = () => {
                             {searchResults.map((stock, index) => (
                               <div
                                 key={stock.symbol}
-                                className={`flex items-center justify-between p-3 rounded cursor-pointer transition-colors ${
+                                className={`flex items-center justify-between p-2 sm:p-3 rounded cursor-pointer transition-colors ${
                                   index === selectedIndex 
                                     ? 'bg-primary/10 border border-primary/20' 
                                     : 'hover:bg-muted'
                                 }`}
                                 onClick={() => addStockToWatchlist(stock.symbol)}
                               >
-                                <div className="flex-1">
+                                <div className="flex-1 min-w-0">
                                   <div className="flex items-center gap-2">
-                                    <span className="font-semibold text-sm">{stock.symbol}</span>
+                                    <span className="font-semibold text-sm truncate">{stock.symbol}</span>
                                     {stock.changePercent !== undefined && (
-                                      <span className={`text-xs px-1.5 py-0.5 rounded ${
+                                      <span className={`text-xs px-1.5 py-0.5 rounded flex-shrink-0 ${
                                         stock.changePercent >= 0 
-                                          ? 'bg-green-100 text-green-700' 
-                                          : 'bg-red-100 text-red-700'
+                                          ? 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300' 
+                                          : 'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300'
                                       }`}>
                                         {stock.changePercent >= 0 ? '+' : ''}{stock.changePercent.toFixed(2)}%
                                       </span>
                                     )}
                                   </div>
-                                  <p className="text-xs text-muted-foreground mt-1">
+                                  <p className="text-xs text-muted-foreground mt-1 truncate">
                                     {stock.symbol} Stock
                                   </p>
                                 </div>
-                                <div className="text-right">
+                                <div className="text-right flex-shrink-0 ml-2">
                                   <p className="text-sm font-medium">
                                     ₹{stock.lastPrice?.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
                                   </p>

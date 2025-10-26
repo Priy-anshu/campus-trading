@@ -124,8 +124,7 @@ const WatchlistPage: React.FC = () => {
       <Navbar />
         <div className="container mx-auto px-4 py-8 pb-20 md:pb-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">My Watchlists</h1>
-          <p className="text-gray-600">Track your favorite stocks and monitor their performance</p>
+          <h1 className="text-3xl font-bold text-foreground mb-2">My Watchlists</h1>
         </div>
 
       {/* Watchlist Tabs */}
@@ -207,9 +206,9 @@ const WatchlistPage: React.FC = () => {
           <CardContent>
             {getCurrentWatchlist()?.stocks.length === 0 ? (
               <div className="text-center py-12">
-                <Eye className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">No stocks in this watchlist</h3>
-                <p className="text-gray-600 mb-4">
+                <Eye className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                <h3 className="text-lg font-semibold text-foreground mb-2">No stocks in this watchlist</h3>
+                <p className="text-muted-foreground mb-4">
                   Add stocks to this watchlist by visiting their stock pages
                 </p>
                 <Button onClick={() => navigate('/dashboard')}>
@@ -309,9 +308,9 @@ const WatchlistPage: React.FC = () => {
       ) : (
         <Card>
           <CardContent className="text-center py-12">
-            <Eye className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">No watchlists yet</h3>
-            <p className="text-gray-600 mb-4">
+            <Eye className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+            <h3 className="text-lg font-semibold text-foreground mb-2">No watchlists yet</h3>
+            <p className="text-muted-foreground mb-4">
               Create your first watchlist to start tracking stocks
             </p>
             <Button onClick={createNewWatchlist}>

@@ -1,6 +1,7 @@
 import { Card } from "@/components/ui/card";
 import HoldingsRow from "./HoldingsRow";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useNavigate } from "react-router-dom";
 
 interface HoldingData {
   id: string;
@@ -21,6 +22,7 @@ interface HoldingsTableProps {
 
 const HoldingsTable = ({ holdings }: HoldingsTableProps) => {
   const isMobile = useIsMobile();
+  const navigate = useNavigate();
 
   if (holdings.length === 0) {
     return (
@@ -33,58 +35,58 @@ const HoldingsTable = ({ holdings }: HoldingsTableProps) => {
     );
   }
 
-  // Mobile horizontal scroll view
+  // Mobile vertical cards view
   if (isMobile) {
     return (
-      <Card className="overflow-hidden">
-        <div className="overflow-x-auto">
-          <div className="flex gap-4 p-4 min-w-max">
-            {holdings.map((holding, index) => (
-              <div key={holding.id || `holding-${index}`} className="min-w-[280px] flex-shrink-0">
-                <div className="bg-card border border-border rounded-lg p-4">
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center gap-2">
-                      <div>
-                        <p className="font-medium text-sm">{holding.company}</p>
-                        <p className="text-xs text-muted-foreground">{holding.shares} shares</p>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <div className="flex justify-between">
-                      <span className="text-xs text-muted-foreground">Market Price</span>
-                      <span className="text-sm font-medium">₹{holding.marketPrice.toFixed(2)}</span>
-                    </div>
-                    
-                    <div className="flex justify-between">
-                      <span className="text-xs text-muted-foreground">Returns</span>
-                      <div className="text-right">
-                        <p className={`text-sm font-medium ${holding.profitLoss >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                          {holding.profitLoss >= 0 ? '+' : ''}₹{holding.profitLoss.toFixed(2)}
-                        </p>
-                        <p className={`text-xs ${holding.profitLossPercent >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                          {holding.profitLossPercent >= 0 ? '+' : ''}{holding.profitLossPercent.toFixed(2)}%
-                        </p>
-                      </div>
-                    </div>
-                    
-                    <div className="flex justify-between">
-                      <span className="text-xs text-muted-foreground">Current Value</span>
-                      <span className="text-sm font-medium">₹{holding.currentValue.toFixed(2)}</span>
-                    </div>
-                    
-                    <div className="flex justify-between">
-                      <span className="text-xs text-muted-foreground">Invested</span>
-                      <span className="text-sm font-medium">₹{holding.investedValue.toFixed(2)}</span>
-                    </div>
+      <div className="space-y-4">
+        {holdings.map((holding, index) => (
+          <Card 
+            key={holding.id || `holding-${index}`} 
+            className="p-4 cursor-pointer hover:shadow-md transition-all hover:scale-[1.02]"
+            onClick={() => navigate(`/stock/${holding.company}`)}
+          >
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="font-semibold text-lg">{holding.company}</p>
+                  <p className="text-sm text-muted-foreground">{holding.shares} shares</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-lg font-bold">₹{holding.marketPrice.toFixed(2)}</p>
+                  <p className={`text-sm ${holding.dayChangePercent >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                    {holding.dayChangePercent >= 0 ? '+' : ''}{holding.dayChangePercent.toFixed(2)}%
+                  </p>
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-4 pt-2 border-t">
+                <div>
+                  <p className="text-xs text-muted-foreground">Invested</p>
+                  <p className="text-sm font-medium">₹{holding.investedValue.toFixed(2)}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Current Value</p>
+                  <p className="text-sm font-medium">₹{holding.currentValue.toFixed(2)}</p>
+                </div>
+              </div>
+              
+              <div className="pt-2 border-t">
+                <div className="flex justify-between items-center">
+                  <p className="text-xs text-muted-foreground">Total Returns</p>
+                  <div className="text-right">
+                    <p className={`text-sm font-medium ${holding.profitLoss >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                      {holding.profitLoss >= 0 ? '+' : ''}₹{holding.profitLoss.toFixed(2)}
+                    </p>
+                    <p className={`text-xs ${holding.profitLossPercent >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                      {holding.profitLossPercent >= 0 ? '+' : ''}{holding.profitLossPercent.toFixed(2)}%
+                    </p>
                   </div>
                 </div>
               </div>
-            ))}
-          </div>
-        </div>
-      </Card>
+            </div>
+          </Card>
+        ))}
+      </div>
     );
   }
 

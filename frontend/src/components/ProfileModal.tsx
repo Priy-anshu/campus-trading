@@ -145,15 +145,12 @@ const ProfileModal = ({ isOpen, onClose }: ProfileModalProps) => {
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl max-h-[95vh] overflow-y-auto mx-4 sm:mx-0">
+      <DialogContent className="max-w-2xl max-h-[95vh] overflow-y-auto mx-4 sm:mx-0 flex items-center justify-center">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-lg sm:text-xl">
             <User className="h-5 w-5" />
             Profile
           </DialogTitle>
-          <DialogDescription className="text-sm">
-            View and manage your account information and security settings.
-          </DialogDescription>
         </DialogHeader>
 
         <Tabs defaultValue="profile" className="w-full">
@@ -255,19 +252,10 @@ const ProfileModal = ({ isOpen, onClose }: ProfileModalProps) => {
                 </Card>
 
                 <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      {theme === 'light' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-                      Appearance Settings
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
+                  <CardContent className="pt-6">
                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                       <div>
                         <Label className="text-sm font-medium">Theme</Label>
-                        <p className="text-sm text-muted-foreground">
-                          Choose your preferred theme for the application
-                        </p>
                       </div>
                       <Button
                         variant="outline"

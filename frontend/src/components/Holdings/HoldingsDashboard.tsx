@@ -170,7 +170,6 @@ const HoldingsDashboard = () => {
           <span className="text-sm text-muted-foreground">({holdings.length})</span>
           {pricesLoading && (
             <div className="flex items-center gap-1 text-xs text-muted-foreground">
-              <RefreshCw className="h-3 w-3 animate-spin" />
               <span className="hidden sm:inline">Updating prices...</span>
               <span className="sm:hidden">Updating...</span>
             </div>

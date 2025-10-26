@@ -206,7 +206,7 @@ const TradePanel = ({ symbol, currentPrice, onTradeSuccess }: TradePanelProps) =
           <div className="space-y-2">
             <Label className="text-sm font-medium">Order Type</Label>
             <div className="flex gap-2">
-              {["delivery", "intraday", "mtf"].map((type) => (
+              {["delivery", "intraday"].map((type) => (
                 <Button
                   key={type}
                   variant={orderType === type ? "default" : "outline"}
@@ -258,19 +258,20 @@ const TradePanel = ({ symbol, currentPrice, onTradeSuccess }: TradePanelProps) =
               >
                 Market
               </Button>
-              <Button
+              {/* Limit price type commented out */}
+              {/* <Button
                 variant={priceType === "limit" ? "default" : "outline"}
                 size="sm"
                 onClick={() => setPriceType("limit")}
                 className="flex-1 text-xs"
               >
                 Limit
-              </Button>
+              </Button> */}
             </div>
           </div>
 
-          {/* Limit Price */}
-          {priceType === "limit" && (
+          {/* Limit Price - commented out */}
+          {/* {priceType === "limit" && (
             <div className="space-y-2">
               <Label htmlFor="limitPrice" className="text-sm font-medium">
                 Limit Price
@@ -283,7 +284,7 @@ const TradePanel = ({ symbol, currentPrice, onTradeSuccess }: TradePanelProps) =
                 onChange={(e) => setLimitPrice(parseFloat(e.target.value))}
               />
             </div>
-          )}
+          )} */}
 
           {/* Summary */}
           <div className="space-y-2 rounded-lg bg-muted p-4">
@@ -312,7 +313,7 @@ const TradePanel = ({ symbol, currentPrice, onTradeSuccess }: TradePanelProps) =
           <div className="space-y-2">
             <Label className="text-sm font-medium">Order Type</Label>
             <div className="flex gap-2">
-              {["delivery", "intraday", "mtf"].map((type) => (
+              {["delivery", "intraday"].map((type) => (
                 <Button
                   key={type}
                   variant={orderType === type ? "default" : "outline"}
@@ -364,14 +365,15 @@ const TradePanel = ({ symbol, currentPrice, onTradeSuccess }: TradePanelProps) =
               >
                 Market
               </Button>
-              <Button
+              {/* Limit price type commented out */}
+              {/* <Button
                 variant={priceType === "limit" ? "default" : "outline"}
                 size="sm"
                 onClick={() => setPriceType("limit")}
                 className="flex-1 text-xs"
               >
                 Limit
-              </Button>
+              </Button> */}
             </div>
           </div>
 

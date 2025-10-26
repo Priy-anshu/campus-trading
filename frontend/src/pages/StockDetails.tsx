@@ -232,8 +232,7 @@ const StockDetails = () => {
             onClick={() => navigate(-1)}
             className="gap-2"
           >
-            <ArrowLeft className="h-4 w-4" />
-            Back
+            <ArrowLeft className="h-4 w-4 font-bold" />
           </Button>
           <div className="flex items-center gap-2">
             <Dialog open={showWatchlistDialog} onOpenChange={setShowWatchlistDialog}>
@@ -299,9 +298,9 @@ const StockDetails = () => {
               changePercent={toNumber(stockData.changePercent ?? stockData.pChange)}
             />
             {/* Chart requires real series; until we have a backend timeseries endpoint, hide chart */}
-            <div className="rounded-md border border-border p-6 text-sm text-muted-foreground">
+            {/* <div className="rounded-md border border-border p-6 text-sm text-muted-foreground">
               Intraday chart will appear when timeseries API is available.
-            </div>
+            </div> */}
           </div>
 
           {/* Right Column - Trade Panel */}
