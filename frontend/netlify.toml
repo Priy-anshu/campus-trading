@@ -11,4 +11,4 @@
   status = 200
 
 [context.production]
-  environment = { VITE_API_URL = "https://campus-trading-backend.onrender.com" }
+  environment = { VITE_API_URL = "https://campus-trading-backend.onrender.com/api" }
