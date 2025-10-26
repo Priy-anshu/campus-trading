@@ -43,7 +43,8 @@ app.use(helmet({
 // Determine allowed origins based on environment
 const allowedOrigins = process.env.NODE_ENV === 'production'
   ? [
-      'https://campus-trading.netlify.app',
+      'https://campus-trading.vercel.app',  // New Vercel deployment
+      'https://campus-trading.netlify.app', // Keep for future Netlify use
       'https://campus-trading-app.netlify.app',
       'https://campus-trading-frontend.netlify.app',
       'http://localhost:3000',
