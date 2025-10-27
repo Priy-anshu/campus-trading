@@ -16,8 +16,11 @@ const MarketTicker = () => {
   const [stocks, setStocks] = useState<StockData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(false);
+  const [isPaused, setIsPaused] = useState(false);
   const animationRef = useRef<HTMLDivElement>(null);
   const animationParamsRef = useRef<{duration: number; distance: number}>({duration: 60000, distance: 5000});
+  const pauseOffsetRef = useRef(0); // Track position when paused
+  const pauseStartTimeRef = useRef(0); // Track when pause started
 
   // Function to get or create persistent animation start time
   const getAnimationStartTime = () => {
@@ -82,14 +85,47 @@ const MarketTicker = () => {
   // Function to set animation position based on elapsed time
   const setAnimationPosition = () => {
     if (animationRef.current) {
-      const startTime = getAnimationStartTime();
-      const elapsed = Date.now() - startTime;
-      
-      const { duration, distance } = animationParamsRef.current;
-      const progress = (elapsed % duration) / duration;
-      const translateX = -progress * distance;
-      animationRef.current.style.transform = `translateX(${translateX}px)`;
+      if (isPaused) {
+        // Maintain current position when paused
+        const currentPos = pauseOffsetRef.current;
+        animationRef.current.style.transform = `translateX(${currentPos}px)`;
+      } else {
+        const startTime = getAnimationStartTime();
+        const elapsed = Date.now() - startTime;
+        
+        const { duration, distance } = animationParamsRef.current;
+        const progress = (elapsed % duration) / duration;
+        const translateX = -progress * distance;
+        pauseOffsetRef.current = translateX; // Store current position
+        animationRef.current.style.transform = `translateX(${translateX}px)`;
+      }
     }
+  };
+  
+  const handleMouseEnter = () => {
+    if (animationRef.current) {
+      const transform = animationRef.current.style.transform;
+      const match = transform.match(/translateX\((-?\d+)px\)/);
+      if (match) {
+        pauseOffsetRef.current = parseInt(match[1]);
+      }
+      pauseStartTimeRef.current = Date.now();
+    }
+    setIsPaused(true);
+  };
+  
+  const handleMouseLeave = () => {
+    if (animationRef.current && pauseStartTimeRef.current > 0) {
+      // Adjust start time to account for pause duration
+      const pauseDuration = Date.now() - pauseStartTimeRef.current;
+      const currentStartTime = getAnimationStartTime();
+      const newStartTime = currentStartTime - pauseDuration;
+      
+      localStorage.setItem('marketTickerStartTime', newStartTime.toString());
+      sessionStorage.setItem('marketTickerSessionTime', newStartTime.toString());
+      (window as any).__marketTickerStartTime = newStartTime;
+    }
+    setIsPaused(false);
   };
 
   // Function to reset animation to start from NIFTY 200
@@ -201,7 +237,11 @@ const MarketTicker = () => {
   if (error) return <ErrorCard message="Stock data is temporarily unavailable. Please wait for one minute and try again." />;
 
   return (
-    <div className="relative overflow-hidden bg-gradient-to-r from-background via-card/50 to-background">
+    <div 
+      className="relative overflow-hidden bg-gradient-to-r from-background via-card/50 to-background"
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+    >
       {/* Sliding Animation Container */}
       <div ref={animationRef} className="flex transition-none">
             {/* First set of stocks */}
