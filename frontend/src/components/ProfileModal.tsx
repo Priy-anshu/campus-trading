@@ -135,6 +135,7 @@ const ProfileModal = ({ isOpen, onClose }: ProfileModalProps) => {
         <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>Profile</DialogTitle>
+            <DialogDescription>Loading your profile information...</DialogDescription>
           </DialogHeader>
           <div className="flex items-center justify-center py-8">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
@@ -148,8 +149,8 @@ const ProfileModal = ({ isOpen, onClose }: ProfileModalProps) => {
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-md sm:max-w-2xl max-h-[90vh] overflow-y-auto mx-2 sm:mx-4">
         <DialogHeader>
-          <DialogTitle className="text-lg sm:text-xl">
-          </DialogTitle>
+          <DialogTitle className="text-lg sm:text-xl">Profile</DialogTitle>
+          <DialogDescription>View and manage your profile settings</DialogDescription>
         </DialogHeader>
 
         <Tabs defaultValue="profile" className="w-full">

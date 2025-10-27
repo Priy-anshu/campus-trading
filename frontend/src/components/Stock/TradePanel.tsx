@@ -39,8 +39,8 @@ interface TradePanelProps {
  * @returns {JSX.Element} The trading panel interface
  */
 const TradePanel = ({ symbol, currentPrice, onTradeSuccess }: TradePanelProps) => {
-  // State for order quantity - minimum 1 share
-  const [quantity, setQuantity] = useState(1);
+  // State for order quantity - no default value
+  const [quantity, setQuantity] = useState(0);
   
   // State for order type: delivery (long-term), intraday (same-day), MTF (margin trading)
   const [orderType, setOrderType] = useState("delivery");
@@ -105,6 +105,12 @@ const TradePanel = ({ symbol, currentPrice, onTradeSuccess }: TradePanelProps) =
       // Prevent multiple simultaneous submissions
       setIsSubmitting(true);
       
+      // Validate quantity before proceeding
+      if (!quantity || quantity <= 0) {
+        toast({ title: "Invalid Quantity", description: "Please enter a valid quantity (minimum 1)" });
+        return;
+      }
+      
       // Determine effective price based on order type
       const effectivePrice = priceType === "market" ? currentPrice : limitPrice;
       
@@ -153,6 +159,12 @@ const TradePanel = ({ symbol, currentPrice, onTradeSuccess }: TradePanelProps) =
     try {
       // Prevent multiple simultaneous submissions
       setIsSubmitting(true);
+      
+      // Validate quantity before proceeding
+      if (!quantity || quantity <= 0) {
+        toast({ title: "Invalid Quantity", description: "Please enter a valid quantity (minimum 1)" });
+        return;
+      }
       
       // Determine effective price based on order type
       const effectivePrice = priceType === "market" ? currentPrice : limitPrice;
@@ -229,9 +241,12 @@ const TradePanel = ({ symbol, currentPrice, onTradeSuccess }: TradePanelProps) =
               <Input
                 id="quantity"
                 type="number"
-                min="1"
+                min="0"
                 value={quantity}
-                onChange={(e) => setQuantity(parseInt(e.target.value) || 1)}
+                onChange={(e) => {
+                  const val = parseInt(e.target.value) || 0;
+                  setQuantity(val);
+                }}
                 className="flex-1"
               />
               <Select defaultValue="nse">
@@ -336,9 +351,12 @@ const TradePanel = ({ symbol, currentPrice, onTradeSuccess }: TradePanelProps) =
               <Input
                 id="sell-quantity"
                 type="number"
-                min="1"
+                min="0"
                 value={quantity}
-                onChange={(e) => setQuantity(parseInt(e.target.value) || 1)}
+                onChange={(e) => {
+                  const val = parseInt(e.target.value) || 0;
+                  setQuantity(val);
+                }}
                 className="flex-1"
               />
               <Select defaultValue="nse">
