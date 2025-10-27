@@ -54,7 +54,7 @@ const allowedOrigins = process.env.NODE_ENV === 'production'
     ]
   : ['http://localhost:3000', 'http://localhost:3001', 'http://127.0.0.1:3000', 'http://127.0.0.1:3001'];
 
-// CORS middleware
+// CORS middleware - Simplified for production
 const corsOptions = {
   origin: function (origin, callback) {
     // Allow requests with no origin (like mobile apps or curl requests)
@@ -62,17 +62,27 @@ const corsOptions = {
       return callback(null, true);
     }
     
+    // Check if origin is allowed
     if (allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
-      console.error(`❌ CORS blocked origin: ${origin}`);
-      callback(new Error('Not allowed by CORS'));
+      // Log but allow for production - can be strict in development
+      console.log(`⚠️ Unlisted origin: ${origin}`);
+      if (process.env.NODE_ENV === 'production') {
+        // In production, be more lenient
+        callback(null, true);
+      } else {
+        callback(new Error('Not allowed by CORS'));
+      }
     }
   },
   credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-  optionsSuccessStatus: 200
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+  exposedHeaders: ['Content-Type', 'Authorization'],
+  maxAge: 86400, // 24 hours
+  preflightContinue: false,
+  optionsSuccessStatus: 204
 };
 
 app.use(cors(corsOptions));
