@@ -115,11 +115,16 @@ const InvestmentSummary = () => {
       const totalReturnPercent = totalInvestedValue > 0 ? (totalReturn / totalInvestedValue) * 100 : 0;
 
       // Update with final calculated values
+      // Calculate 1-day return by comparing current total value with invested value
+      // Assuming portfolio started at totalInvestedValue, the 1-day change is the difference
+      // We get the actual 1-day return from the API if available
+      const apiOneDayReturn = toNumber(data?.oneDayReturn || 0);
+      
       setData({
         currentValue: totalCurrentValue,
         investedValue: totalInvestedValue,
-        oneDayReturn: toNumber(data?.oneDayReturn || 0),
-        oneDayReturnPercent: totalInvestedValue > 0 ? (toNumber(data?.oneDayReturn || 0) / totalInvestedValue) * 100 : 0,
+        oneDayReturn: apiOneDayReturn,
+        oneDayReturnPercent: totalInvestedValue > 0 ? (apiOneDayReturn / totalInvestedValue) * 100 : 0,
         totalReturn: totalReturn,
         totalReturnPercent: totalReturnPercent,
         walletBalance: toNumber(data?.walletBalance || 0),

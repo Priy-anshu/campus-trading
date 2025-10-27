@@ -60,13 +60,7 @@ const ProfileModal = ({ isOpen, onClose }: ProfileModalProps) => {
   useEffect(() => {
     if (isOpen) {
       fetchProfile();
-      
-      // Auto-refresh profile data every 15 seconds when modal is open
-      const interval = setInterval(() => {
-        fetchProfile();
-      }, 15000);
-      
-      return () => clearInterval(interval);
+      // Removed auto-refresh - profile data only loads on modal open
     }
   }, [isOpen]);
 

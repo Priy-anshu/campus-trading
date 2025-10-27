@@ -49,13 +49,14 @@ const Leaderboard = () => {
         fetchLeaderboard('overall')
       ]);
 
-      setLeaderboardData({
-        day: dayData,
-        month: monthData,
-        overall: overallData
-      });
+      // Update state only if we have valid data
+      setLeaderboardData(prev => ({
+        day: dayData.length > 0 || isInitial ? dayData : prev.day,
+        month: monthData.length > 0 || isInitial ? monthData : prev.month,
+        overall: overallData.length > 0 || isInitial ? overallData : prev.overall
+      }));
     } catch (error) {
-      // Silently handle errors
+      // Silently handle errors - keep existing data
     } finally {
       if (isInitial) {
         setLoading(false);
