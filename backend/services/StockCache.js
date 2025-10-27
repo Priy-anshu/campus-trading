@@ -201,11 +201,30 @@ export async function loadStocksFromDatabase() {
   }
 }
 
-// Initialize cache and start periodic refresh (every 15 seconds)
-const INTERVAL_MS = 15 * 1000; // 15 seconds interval
+// Helper function to check if market is open (9 AM - 5 PM IST)
+function isMarketOpen() {
+  const now = new Date();
+  const istOffset = 5.5 * 60 * 60 * 1000; // IST is UTC+5:30
+  const istTime = new Date(now.getTime() + istOffset);
+  const istHours = istTime.getUTCHours();
+  
+  // Market open: 9 AM - 5 PM IST
+  return istHours >= 9 && istHours < 17;
+}
+
+// Initialize cache and load from database
 loadStocksFromDatabase(); // Load initial data from database
 refreshCache(); // Fetch latest data from API
-setInterval(refreshCache, INTERVAL_MS).unref?.(); // Start periodic refresh
+
+// Start periodic refresh only during market hours
+setInterval(() => {
+  if (isMarketOpen()) {
+    refreshCache();
+  } else {
+    // Market is closed - log but don't refresh
+    console.log(`[${new Date().toISOString()}] Market closed - skipping external API refresh`);
+  }
+}, 15 * 1000).unref?.(); // Check every 15 seconds
 
 /**
  * Get top performing stocks (gainers)
