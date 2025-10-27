@@ -88,11 +88,8 @@ const MarketTicker = () => {
           
           // Use calculated duration (no min/max restrictions)
           animationDuration = Math.max(calculatedDuration, 10000); // At least 10 seconds minimum
-            maxDistance = totalDistanceNeeded;
-            console.log(`Using calculated duration: ${Math.round(animationDuration/1000)}s for ${stocks.length} stocks`);
-          } else {
-            console.log(`Using fallback duration: 1 hour (calculated: ${Math.round(calculatedDuration/1000)}s was outside reasonable range)`);
-          }
+          maxDistance = totalDistanceNeeded;
+          console.log(`Using calculated duration: ${Math.round(animationDuration/1000)}s for ${stocks.length} stocks`);
         } catch (error) {
           console.log('Using fallback duration: 1 hour (calculation failed)');
         }
