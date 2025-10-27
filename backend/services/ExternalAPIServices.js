@@ -220,12 +220,18 @@ async function fetchYahooQuotesForSymbols(symbols) {
       const resp = await axios.get(url, { headers: { 'User-Agent': 'Mozilla/5.0' } });
       const quotes = resp.data?.quoteResponse?.result || [];
       for (const q of quotes) {
-        // Get name from Yahoo - prefer longName if different from symbol, otherwise shortName
         const symbol = (q.symbol || '').replace('.NS', '');
-        let name = q.longName || q.shortName || '';
-        // If name is same as symbol or empty, use longName first, then shortName
-        if (!name || name === symbol) {
-          name = q.longName || q.shortName || symbol;
+        
+        // Get name - prioritize longName, but use shortName if longName is missing
+        // Only use a name if it's different from symbol
+        let name = '';
+        if (q.longName && q.longName !== symbol) {
+          name = q.longName;
+        } else if (q.shortName && q.shortName !== symbol) {
+          name = q.shortName;
+        } else {
+          // If no distinct name, leave empty (frontend will hide it)
+          name = '';
         }
         
         results.push({
