@@ -67,8 +67,8 @@ const MarketTicker = () => {
     const containerWidth = window.innerWidth;
     const totalDistanceNeeded = totalStockWidth + containerWidth;
     
-    const mobileSpeed = 15000; // pixels per second (readable speed)
-    const desktopSpeed = 12000;
+    const mobileSpeed = 7500; // pixels per second (half speed for readability)
+    const desktopSpeed = 6000;
     const speed = isMobile ? mobileSpeed : desktopSpeed;
     
     const calculatedDuration = (totalDistanceNeeded / speed) * 1000;
@@ -93,9 +93,9 @@ const MarketTicker = () => {
         const startTime = getAnimationStartTime();
         const elapsed = Date.now() - startTime;
         
-        const { duration, distance } = animationParamsRef.current;
-        const progress = (elapsed % duration) / duration;
-        const translateX = -progress * distance;
+        const { distance } = animationParamsRef.current;
+        // Continuous scrolling without looping back
+        const translateX = -(elapsed / 1000 * (isMobile ? 7500 : 6000));
         pauseOffsetRef.current = translateX; // Store current position
         animationRef.current.style.transform = `translateX(${translateX}px)`;
       }
