@@ -104,9 +104,13 @@ export async function refreshCache() {
         if (lastPrice === 0 && pChange === 0 && change === 0 && totalTradedVolume === 0) {
           newCacheMap[symbol] = prev;
         } else {
+        // Get name from API, but only use it if different from symbol
+        const rawName = item.name || item.companyName || item.shortName || '';
+        const name = rawName && rawName !== symbol ? rawName : '';
+        
         const stockData = {
           symbol,
-          name: item.name || item.companyName || item.shortName || symbol || '',
+          name,
           lastPrice,
           pChange,
           change,
@@ -117,7 +121,7 @@ export async function refreshCache() {
           // Prepare for database update
           stocksToUpdate.push({
             symbol: symbol.toUpperCase(),
-            name: item.name || item.companyName || item.shortName || symbol,
+            name: name, // Use the processed name (empty if same as symbol)
             price: lastPrice,
             change: change,
             changePercent: pChange,
