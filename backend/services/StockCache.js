@@ -214,9 +214,11 @@ function isMarketOpen() {
 
 // Initialize cache and load from database
 loadStocksFromDatabase(); // Load initial data from database
-refreshCache(); // Fetch latest data from API
 
-// Start periodic refresh only during market hours
+// Fetch data on server start
+refreshCache(); // Fetch latest data from API once on startup
+
+// Start periodic refresh only during market hours (every 15 seconds)
 setInterval(() => {
   if (isMarketOpen()) {
     refreshCache();
