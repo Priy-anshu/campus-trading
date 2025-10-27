@@ -132,7 +132,6 @@ const AddStockModal = ({
                   >
                     <div className="text-left">
                       <p className="font-medium text-foreground">{stock.symbol}</p>
-                      <p className="text-sm text-muted-foreground">{stock.symbol}</p>
                     </div>
                     <p className="text-sm font-medium text-foreground">
                       ₹{(stock.lastPrice || 0).toFixed(2)}

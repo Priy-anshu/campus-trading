@@ -188,7 +188,7 @@ const Navbar = () => {
                         onClick={() => goToSymbol(r.symbol)}
                         className="w-full px-3 py-2 text-left text-sm hover:bg-muted flex items-center justify-between"
                       >
-                        <span className="truncate mr-2">{r.symbol} — {r.name}</span>
+                        <span className="truncate mr-2">{r.symbol}</span>
                         <span className="text-muted-foreground">₹{r.price.toLocaleString('en-IN')}</span>
                       </button>
                     ))

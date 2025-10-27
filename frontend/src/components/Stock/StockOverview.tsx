@@ -39,12 +39,11 @@ const StockOverview = ({
         {/* Stock Info */}
         <div className="flex-1">
           <div className="flex items-center gap-2">
-            <h1 className="text-2xl font-bold text-foreground">{name}</h1>
+            <h1 className="text-2xl font-bold text-foreground">{symbol}</h1>
             <span className="rounded-md bg-muted px-2 py-1 text-xs font-medium text-muted-foreground">
               {exchange}
             </span>
           </div>
-          <p className="mt-1 text-sm text-muted-foreground">{symbol}</p>
 
           {/* Price Info */}
           <div className="mt-4 flex items-baseline gap-3">

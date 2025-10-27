@@ -71,8 +71,25 @@ const MarketTicker = () => {
         const startTime = getAnimationStartTime();
         const elapsed = Date.now() - startTime;
         
+        // Calculate how far we should be in the current cycle
+        const cycleElapsed = elapsed % ANIMATION_DURATION;
+        
         // Simple: scroll 1 pixel per 10ms = 100px per second (very slow)
-        const translateX = -(elapsed % ANIMATION_DURATION) * 0.1;
+        const translateX = -cycleElapsed * 0.1;
+        
+        // Check if we've completed a full cycle (elapsed >= ANIMATION_DURATION)
+        if (elapsed >= ANIMATION_DURATION) {
+          // Reset the start time to now, so next cycle starts from 0
+          const now = Date.now();
+          localStorage.setItem('marketTickerStartTime', now.toString());
+          sessionStorage.setItem('marketTickerSessionTime', now.toString());
+          (window as any).__marketTickerStartTime = now;
+          
+          // Reset position to start of new cycle
+          animationRef.current.style.transform = 'translateX(0px)';
+          pauseOffsetRef.current = 0;
+          return;
+        }
         
         pauseOffsetRef.current = translateX; // Store current position
         animationRef.current.style.transform = `translateX(${translateX}px)`;
@@ -228,9 +245,6 @@ const MarketTicker = () => {
                   >
                     <div className="flex-1">
                       <p className="text-xs font-medium text-muted-foreground">{stock.symbol}</p>
-                      {stock.name && (
-                        <p className="text-[10px] text-muted-foreground/70 truncate max-w-[120px]">{stock.name}</p>
-                      )}
                       <p data-price className="text-lg font-semibold text-foreground mt-1">
                         ₹{(stock.lastPrice || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
                       </p>
@@ -262,9 +276,6 @@ const MarketTicker = () => {
               >
                 <div className="flex-1">
                   <p className="text-xs font-medium text-muted-foreground">{stock.symbol}</p>
-                  {stock.name && (
-                    <p className="text-[10px] text-muted-foreground/70 truncate max-w-[120px]">{stock.name}</p>
-                  )}
                   <p data-price className="text-lg font-semibold text-foreground mt-1">
                     ₹{(stock.lastPrice || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
                   </p>

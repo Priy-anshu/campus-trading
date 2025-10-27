@@ -423,9 +423,6 @@ const WatchlistManager = () => {
                                       </span>
                                     )}
                                   </div>
-                                  <p className="text-xs text-muted-foreground mt-1 truncate">
-                                    {stock.symbol} Stock
-                                  </p>
                                 </div>
                                 <div className="text-right flex-shrink-0 ml-2">
                                   <p className="text-sm font-medium">

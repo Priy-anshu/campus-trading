@@ -203,7 +203,7 @@ const StockDetails = () => {
     return (
       <div className="min-h-screen bg-background">
         <Navbar />
-        <div className="mx-auto max-w-7xl px-4 py-8 pb-20 md:pb-8 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-7xl px-4 py-8 pb-bottom-nav sm:px-6 lg:px-8">
           <Loader />
         </div>
       </div>
@@ -214,7 +214,7 @@ const StockDetails = () => {
     return (
       <div className="min-h-screen bg-background">
         <Navbar />
-        <div className="mx-auto max-w-7xl px-4 py-8 pb-20 md:pb-8 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-7xl px-4 py-8 pb-bottom-nav sm:px-6 lg:px-8">
           <ErrorCard message={error || "Stock not found"} />
         </div>
       </div>
@@ -224,7 +224,7 @@ const StockDetails = () => {
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
-      <div className="mx-auto max-w-7xl px-4 py-8 pb-20 md:pb-8 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-7xl px-4 py-8 pb-bottom-nav sm:px-6 lg:px-8">
         {/* Back Button and Actions */}
         <div className="flex items-center justify-between mb-4">
           <Button
@@ -290,7 +290,7 @@ const StockDetails = () => {
           {/* Left Column - Stock Info & Chart */}
           <div className="space-y-6 lg:col-span-2">
             <StockOverview
-              name={stockData.companyName || stockData.name || stockData.symbol || symbol || '—'}
+              name={stockData.symbol || symbol || '—'}
               symbol={stockData.symbol || symbol || '—'}
               exchange={stockData.exchange || 'NSE'}
               currentPrice={toNumber(stockData.price ?? stockData.lastPrice ?? stockData.ltp)}

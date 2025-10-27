@@ -8,6 +8,7 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
+    --bottom-nav-height: 64px; /* h-16 = 4rem = 64px */
     --background: 0 0% 98%;
     --foreground: 240 10% 3.9%;
 
@@ -155,4 +156,17 @@ All colors MUST be HSL.
 /* Smooth transitions for manual animation */
 .transition-none {
   transition: none;
+}
+
+/* Auto-adjusting bottom padding for mobile navigation */
+@layer utilities {
+  .pb-bottom-nav {
+    padding-bottom: var(--bottom-nav-height);
+  }
+  
+  @media (min-width: 768px) {
+    .pb-bottom-nav {
+      padding-bottom: 2rem; /* pb-8 on desktop */
+    }
+  }
 }

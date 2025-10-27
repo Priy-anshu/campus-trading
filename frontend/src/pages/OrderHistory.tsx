@@ -119,7 +119,7 @@ const OrderHistory = () => {
     return (
       <div className="min-h-screen bg-background">
         <Navbar />
-        <div className="mx-auto max-w-7xl px-4 py-8 pb-20 md:pb-8 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-7xl px-4 py-8 pb-bottom-nav sm:px-6 lg:px-8">
           <Loader />
         </div>
       </div>
@@ -130,7 +130,7 @@ const OrderHistory = () => {
     return (
       <div className="min-h-screen bg-background">
         <Navbar />
-        <div className="mx-auto max-w-7xl px-4 py-8 pb-20 md:pb-8 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-7xl px-4 py-8 pb-bottom-nav sm:px-6 lg:px-8">
           <ErrorCard message={error} />
         </div>
       </div>
@@ -140,7 +140,7 @@ const OrderHistory = () => {
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
-        <div className="mx-auto max-w-7xl px-4 py-8 pb-20 md:pb-8 sm:px-6 lg:px-8 space-y-6">
+        <div className="mx-auto max-w-7xl px-4 py-8 pb-bottom-nav sm:px-6 lg:px-8 space-y-6">
         <div className="flex items-center justify-between">
           <h1 className="text-3xl font-bold text-foreground">Order History</h1>
         </div>

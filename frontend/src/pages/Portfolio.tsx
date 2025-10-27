@@ -22,7 +22,7 @@ const Portfolio = () => {
       <div className="min-h-screen bg-background">
         <Navbar />
         
-          <main className="mx-auto max-w-7xl px-3 sm:px-4 py-6 sm:py-8 pb-20 md:pb-8 lg:px-8 space-y-6 sm:space-y-8 animate-fade-in">
+          <main className="mx-auto max-w-7xl px-3 sm:px-4 py-6 sm:py-8 pb-bottom-nav lg:px-8 space-y-6 sm:space-y-8 animate-fade-in">
           {/* Holdings Section */}
           <section>
             <HoldingsDashboard />

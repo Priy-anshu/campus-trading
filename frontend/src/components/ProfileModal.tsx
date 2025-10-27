@@ -10,6 +10,7 @@ import { User, Lock, Phone, Calendar, Users, Mail, Wallet, Sun, Moon } from "luc
 import { useToast } from "@/hooks/use-toast";
 import { ENDPOINTS, apiClient } from "@/api/config";
 import { useTheme } from "@/contexts/ThemeContext";
+import { usePortfolio } from "@/hooks/usePortfolio";
 
 interface UserProfile {
   id: string;
@@ -39,6 +40,7 @@ const ProfileModal = ({ isOpen, onClose }: ProfileModalProps) => {
   const [changingPassword, setChangingPassword] = useState(false);
   const { toast } = useToast();
   const { theme, toggleTheme } = useTheme();
+  const { portfolioData } = usePortfolio();
 
   const fetchProfile = async () => {
     setLoading(true);
@@ -63,6 +65,17 @@ const ProfileModal = ({ isOpen, onClose }: ProfileModalProps) => {
       // Removed auto-refresh - profile data only loads on modal open
     }
   }, [isOpen]);
+
+  // Update profile data when portfolio data changes (after buy/sell transactions)
+  useEffect(() => {
+    if (profile && portfolioData) {
+      setProfile(prev => prev ? {
+        ...prev,
+        walletBalance: portfolioData.walletBalance || prev.walletBalance,
+        totalProfit: portfolioData.totalProfit || prev.totalProfit
+      } : prev);
+    }
+  }, [portfolioData]);
 
   const handlePasswordChange = async (e: React.FormEvent) => {
     e.preventDefault();

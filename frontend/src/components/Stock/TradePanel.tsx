@@ -242,10 +242,21 @@ const TradePanel = ({ symbol, currentPrice, onTradeSuccess }: TradePanelProps) =
                 id="quantity"
                 type="number"
                 min="0"
-                value={quantity}
+                value={quantity || ''}
                 onChange={(e) => {
-                  const val = parseInt(e.target.value) || 0;
-                  setQuantity(val);
+                  const val = e.target.value;
+                  // Remove leading zeros or empty input
+                  if (val === '' || val === '0') {
+                    setQuantity(0);
+                  } else {
+                    setQuantity(parseInt(val));
+                  }
+                }}
+                onFocus={(e) => {
+                  // If value is 0, clear it for easier typing
+                  if (quantity === 0) {
+                    e.target.select();
+                  }
                 }}
                 className="flex-1"
               />
@@ -352,10 +363,21 @@ const TradePanel = ({ symbol, currentPrice, onTradeSuccess }: TradePanelProps) =
                 id="sell-quantity"
                 type="number"
                 min="0"
-                value={quantity}
+                value={quantity || ''}
                 onChange={(e) => {
-                  const val = parseInt(e.target.value) || 0;
-                  setQuantity(val);
+                  const val = e.target.value;
+                  // Remove leading zeros or empty input
+                  if (val === '' || val === '0') {
+                    setQuantity(0);
+                  } else {
+                    setQuantity(parseInt(val));
+                  }
+                }}
+                onFocus={(e) => {
+                  // If value is 0, clear it for easier typing
+                  if (quantity === 0) {
+                    e.target.select();
+                  }
                 }}
                 className="flex-1"
               />

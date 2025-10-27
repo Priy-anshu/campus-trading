@@ -122,7 +122,7 @@ const WatchlistPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
-        <div className="container mx-auto px-4 py-8 pb-20 md:pb-8">
+        <div className="container mx-auto px-4 py-8 pb-bottom-nav">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-foreground mb-2">My Watchlists</h1>
         </div>
