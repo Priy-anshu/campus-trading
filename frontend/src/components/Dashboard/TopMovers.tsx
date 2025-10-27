@@ -35,7 +35,7 @@ const TopMovers = () => {
 
         const mapItem = (item: any): StockMover => ({
           symbol: item.symbol || item.tradingsymbol || item.symbolName || 'N/A',
-          companyName: item.symbol || item.tradingsymbol || '—',
+          companyName: item.name || item.companyName || item.symbol || '—',
           logoUrl: '',
           price: Number(item.lastPrice || item.ltp || 0),
           changePercent: Number(item.changePercent || item.pChange || item.change || 0),
@@ -52,7 +52,15 @@ const TopMovers = () => {
       }
     };
 
+    // Initial fetch
     fetchTopMovers();
+
+    // Auto-refresh every 15 seconds
+    const interval = setInterval(() => {
+      fetchTopMovers();
+    }, 15000);
+
+    return () => clearInterval(interval);
   }, []);
 
   const renderStockList = (stocks: StockMover[]) => (

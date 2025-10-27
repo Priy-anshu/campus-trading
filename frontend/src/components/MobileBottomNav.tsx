@@ -102,7 +102,7 @@ const MobileBottomNav: React.FC = () => {
         })}
         
         {/* User Menu Dropdown */}
-        <div ref={menuRef} className="relative">
+        <div ref={menuRef} className="relative flex flex-col items-center justify-center">
           <button
             onClick={() => setUserMenuOpen(!userMenuOpen)}
             className="flex flex-col items-center justify-center space-y-1 px-2 py-2 text-xs font-medium transition-colors cursor-pointer touch-manipulation text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"

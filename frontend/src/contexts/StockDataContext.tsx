@@ -3,6 +3,7 @@ import { ENDPOINTS, apiClient } from '@/api/config';
 
 interface StockData {
   symbol: string;
+  name?: string;
   lastPrice: number;
   changePercent: number;
   change: number;
@@ -63,8 +64,8 @@ export const StockDataProvider = ({ children }: StockDataProviderProps) => {
   useEffect(() => {
     fetchStockData();
     
-    // Set up auto-refresh every 30 seconds
-    const interval = setInterval(fetchStockData, 30000);
+    // Set up auto-refresh every 15 seconds
+    const interval = setInterval(fetchStockData, 15000);
     
     return () => clearInterval(interval);
   }, []);

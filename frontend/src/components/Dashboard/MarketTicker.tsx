@@ -6,6 +6,7 @@ import ErrorCard from "./ErrorCard";
 
 interface StockData {
   symbol: string;
+  name?: string;
   lastPrice: number;
   change: number;
   pChange: number;
@@ -16,7 +17,6 @@ const MarketTicker = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(false);
   const animationRef = useRef<HTMLDivElement>(null);
-  const stocksRef = useRef<StockData[]>([]);
 
   // Function to get or create persistent animation start time
   const getAnimationStartTime = () => {
@@ -79,8 +79,8 @@ const MarketTicker = () => {
           const totalDistanceNeeded = totalStockWidth + containerWidth;
           
           // Calculate duration based on speed preference (much faster)
-          const mobileSpeed = 18000; // pixels per second for mobile (30x faster)
-          const desktopSpeed = 9000; // pixels per second for desktop (30x faster)
+          const mobileSpeed = 36000; // pixels per second for mobile (60x faster)
+          const desktopSpeed = 18000; // pixels per second for desktop (60x faster)
           const speed = isMobile ? mobileSpeed : desktopSpeed;
           
           // Calculate duration needed to show all stocks at the desired speed
@@ -155,7 +155,7 @@ const MarketTicker = () => {
     fetchStocks();
   }, []); // Empty dependency array - only runs once
 
-  // Periodic refresh to update stock values without affecting animation
+  // Periodic refresh to update stock values using React state
   useEffect(() => {
     const interval = setInterval(async () => {
       try {
@@ -171,38 +171,13 @@ const MarketTicker = () => {
         }
 
         if (allStocks.length > 0) {
-          // Update stocks in ref without triggering re-render
-          stocksRef.current = allStocks;
-          
-          // Update the DOM directly to show new prices without re-rendering
-          if (animationRef.current) {
-            const stockElements = animationRef.current.querySelectorAll('[data-stock-symbol]');
-            stockElements.forEach((element) => {
-              const symbol = element.getAttribute('data-stock-symbol');
-              const stock = allStocks.find(s => s.symbol === symbol);
-              if (stock) {
-                const priceElement = element.querySelector('[data-price]');
-                const changeElement = element.querySelector('[data-change]');
-                const pChangeElement = element.querySelector('[data-pchange]');
-                
-                if (priceElement) {
-                  priceElement.textContent = `₹${(stock.lastPrice || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}`;
-                }
-                if (changeElement) {
-                  changeElement.textContent = `${(stock.pChange || 0).toFixed(2)}%`;
-                  changeElement.className = `text-sm font-medium ${(stock.change || 0) >= 0 ? 'text-green-600' : 'text-red-600'}`;
-                }
-                if (pChangeElement) {
-                  pChangeElement.className = `flex items-center gap-1 ${(stock.change || 0) >= 0 ? 'text-green-600' : 'text-red-600'}`;
-                }
-              }
-            });
-          }
+          // Update state properly using React pattern
+          setStocks(allStocks);
         }
       } catch (err) {
         // Silently handle refresh errors
       }
-    }, 60000); // Refresh every 1 minute
+    }, 15000); // Refresh every 15 seconds
 
     return () => clearInterval(interval);
   }, []); // Empty dependency array - runs independently
@@ -249,6 +224,9 @@ const MarketTicker = () => {
                   >
                     <div className="flex-1">
                       <p className="text-xs font-medium text-muted-foreground">{stock.symbol}</p>
+                      {stock.name && (
+                        <p className="text-[10px] text-muted-foreground/70 truncate max-w-[120px]">{stock.name}</p>
+                      )}
                       <p data-price className="text-lg font-semibold text-foreground mt-1">
                         ₹{(stock.lastPrice || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
                       </p>
@@ -280,6 +258,9 @@ const MarketTicker = () => {
               >
                 <div className="flex-1">
                   <p className="text-xs font-medium text-muted-foreground">{stock.symbol}</p>
+                  {stock.name && (
+                    <p className="text-[10px] text-muted-foreground/70 truncate max-w-[120px]">{stock.name}</p>
+                  )}
                   <p data-price className="text-lg font-semibold text-foreground mt-1">
                     ₹{(stock.lastPrice || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
                   </p>

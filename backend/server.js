@@ -120,7 +120,12 @@ app.use('*', (req, res) => {
 
 // Port and MongoDB URI
 const PORT = process.env.PORT || 4000;
-const MONGO_URI = process.env.MONGO_URI || 'mongodb+srv://priyanshu102938_db_user:MySecure123@cluster0.nobx0qb.mongodb.net/?appName=Cluster0';
+const MONGO_URI = process.env.MONGO_URI;
+
+if (!MONGO_URI) {
+  console.error('❌ MONGO_URI is not defined in environment variables');
+  process.exit(1);
+}
 
 // Start server
 async function start() {

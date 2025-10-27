@@ -137,6 +137,21 @@ All colors MUST be HSL.
   animation-play-state: paused;
 }
 
+/* Trading gradient animation */
+@keyframes trading-gradient {
+  0%, 100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+.animate-trading-gradient {
+  background-size: 200% 200%;
+  animation: trading-gradient 3s ease infinite;
+}
+
 /* Smooth transitions for manual animation */
 .transition-none {
   transition: none;

@@ -26,121 +26,128 @@ const InvestmentSummary = () => {
   const [priceCache, setPriceCache] = useState<Record<string, number>>({});
   const [isUpdatingPrices, setIsUpdatingPrices] = useState(false);
 
-  useEffect(() => {
-    const toNumber = (v: any) => {
-      const s = String(v ?? '').replace(/,/g, '').trim();
-      const n = parseFloat(s);
-      return Number.isNaN(n) ? 0 : n;
-    };
+  const toNumber = (v: any) => {
+    const s = String(v ?? '').replace(/,/g, '').trim();
+    const n = parseFloat(s);
+    return Number.isNaN(n) ? 0 : n;
+  };
 
-    const fetchInvestments = async (isRefresh = false) => {
-      if (isRefresh) {
-        setIsRefreshing(true);
-      } else {
-        setIsLoading(true);
+  const fetchInvestments = async (isRefresh = false) => {
+    if (isRefresh) {
+      setIsRefreshing(true);
+    } else {
+      setIsLoading(true);
+    }
+    try {
+      const token = localStorage.getItem("token") || localStorage.getItem("jwt_token");
+      const { data } = await apiClient.get(ENDPOINTS.portfolio, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
+
+      const holdings: any[] = Array.isArray(data?.holdings) ? data.holdings : [];
+      let totalInvestedValue = 0;
+      let totalCurrentValue = 0;
+
+      // First, calculate invested value and show it immediately
+      for (const holding of holdings) {
+        const quantity = toNumber(holding.quantity);
+        const avgPrice = toNumber(holding.avgPrice);
+        const investedValue = quantity * avgPrice;
+        totalInvestedValue += investedValue;
       }
-      try {
-        const token = localStorage.getItem("token") || localStorage.getItem("jwt_token");
-        const { data } = await apiClient.get(ENDPOINTS.portfolio, {
-          headers: token ? { Authorization: `Bearer ${token}` } : {},
-        });
 
-        const holdings: any[] = Array.isArray(data?.holdings) ? data.holdings : [];
-        let totalInvestedValue = 0;
-        let totalCurrentValue = 0;
+      // Set initial data with invested value (no delay)
+      setData({
+        currentValue: totalInvestedValue, // Start with invested value
+        investedValue: totalInvestedValue,
+        oneDayReturn: toNumber(data?.oneDayReturn || 0),
+        oneDayReturnPercent: totalInvestedValue > 0 ? (toNumber(data?.oneDayReturn || 0) / totalInvestedValue) * 100 : 0,
+        totalReturn: 0, // Will update when prices are fetched
+        totalReturnPercent: 0,
+        walletBalance: toNumber(data?.walletBalance || 0),
+      });
 
-        // First, calculate invested value and show it immediately
-        for (const holding of holdings) {
-          const quantity = toNumber(holding.quantity);
-          const avgPrice = toNumber(holding.avgPrice);
-          const investedValue = quantity * avgPrice;
-          totalInvestedValue += investedValue;
-        }
-
-        // Set initial data with invested value (no delay)
-        setData({
-          currentValue: totalInvestedValue, // Start with invested value
-          investedValue: totalInvestedValue,
-          oneDayReturn: 0,
-          oneDayReturnPercent: 0,
-          totalReturn: 0, // Will update when prices are fetched
-          totalReturnPercent: 0,
-          walletBalance: toNumber(data?.walletBalance || 0),
-        });
-
-        // Then fetch current prices in parallel for better performance
-        setIsUpdatingPrices(true);
-        const pricePromises = holdings.map(async (holding) => {
-          const symbol = holding.symbol;
-          
-          // Check cache first (valid for 30 seconds)
-          const cacheKey = `${symbol}_${Date.now()}`;
-          const cachedPrice = priceCache[symbol];
-          const cacheTime = localStorage.getItem(`price_${symbol}_time`);
-          const isCacheValid = cacheTime && (Date.now() - parseInt(cacheTime)) < 30000; // 30 seconds
-
-          if (cachedPrice && isCacheValid) {
-            return { symbol, price: cachedPrice };
-          }
-
-          try {
-            const { data: stockData } = await apiClient.get(ENDPOINTS.stockSearch, { 
-              params: { symbol } 
-            });
-            const currentPrice = stockData?.[0]?.lastPrice || stockData?.[0]?.price || 0;
-            
-            // Cache the price
-            setPriceCache(prev => ({ ...prev, [symbol]: currentPrice }));
-            localStorage.setItem(`price_${symbol}_time`, Date.now().toString());
-            
-            return { symbol, price: toNumber(currentPrice) };
-          } catch (err) {
-            // Use cached price or fallback to invested value
-            return { symbol, price: cachedPrice || toNumber(holding.avgPrice) };
-          }
-        });
-
-        // Wait for all price fetches to complete
-        const priceResults = await Promise.all(pricePromises);
+      // Then fetch current prices in parallel for better performance
+      setIsUpdatingPrices(true);
+      const pricePromises = holdings.map(async (holding) => {
+        const symbol = holding.symbol;
         
-        // Calculate final current value with fetched prices
-        totalCurrentValue = 0;
-        for (const holding of holdings) {
-          const quantity = toNumber(holding.quantity);
-          const priceResult = priceResults.find(p => p.symbol === holding.symbol);
-          const currentPrice = priceResult?.price || toNumber(holding.avgPrice);
-          totalCurrentValue += quantity * currentPrice;
+        // Check cache first (valid for 15 seconds)
+        const cacheKey = `${symbol}_${Date.now()}`;
+        const cachedPrice = priceCache[symbol];
+        const cacheTime = localStorage.getItem(`price_${symbol}_time`);
+        const isCacheValid = cacheTime && (Date.now() - parseInt(cacheTime)) < 15000; // 15 seconds
+
+        if (cachedPrice && isCacheValid) {
+          return { symbol, price: cachedPrice };
         }
 
-        const totalReturn = totalCurrentValue - totalInvestedValue;
-        const totalReturnPercent = totalInvestedValue > 0 ? (totalReturn / totalInvestedValue) * 100 : 0;
+        try {
+          const { data: stockData } = await apiClient.get(ENDPOINTS.stockSearch, { 
+            params: { symbol } 
+          });
+          const currentPrice = stockData?.[0]?.lastPrice || stockData?.[0]?.price || 0;
+          
+          // Cache the price
+          setPriceCache(prev => ({ ...prev, [symbol]: currentPrice }));
+          localStorage.setItem(`price_${symbol}_time`, Date.now().toString());
+          
+          return { symbol, price: toNumber(currentPrice) };
+        } catch (err) {
+          // Use cached price or fallback to invested value
+          return { symbol, price: cachedPrice || toNumber(holding.avgPrice) };
+        }
+      });
 
-        // Update with final calculated values
-        setData({
-          currentValue: totalCurrentValue,
-          investedValue: totalInvestedValue,
-          oneDayReturn: 0,
-          oneDayReturnPercent: 0,
-          totalReturn: totalReturn,
-          totalReturnPercent: totalReturnPercent,
-          walletBalance: toNumber(data?.walletBalance || 0),
-        });
-        setIsUpdatingPrices(false);
-      } catch (err) {
-        setError(true);
-        setIsUpdatingPrices(false);
-      } finally {
-        setIsLoading(false);
-        setIsRefreshing(false);
+      // Wait for all price fetches to complete
+      const priceResults = await Promise.all(pricePromises);
+      
+      // Calculate final current value with fetched prices
+      totalCurrentValue = 0;
+      for (const holding of holdings) {
+        const quantity = toNumber(holding.quantity);
+        const priceResult = priceResults.find(p => p.symbol === holding.symbol);
+        const currentPrice = priceResult?.price || toNumber(holding.avgPrice);
+        totalCurrentValue += quantity * currentPrice;
       }
-    };
 
-    fetchInvestments();
-  }, []);
+      const totalReturn = totalCurrentValue - totalInvestedValue;
+      const totalReturnPercent = totalInvestedValue > 0 ? (totalReturn / totalInvestedValue) * 100 : 0;
+
+      // Update with final calculated values
+      setData({
+        currentValue: totalCurrentValue,
+        investedValue: totalInvestedValue,
+        oneDayReturn: toNumber(data?.oneDayReturn || 0),
+        oneDayReturnPercent: totalInvestedValue > 0 ? (toNumber(data?.oneDayReturn || 0) / totalInvestedValue) * 100 : 0,
+        totalReturn: totalReturn,
+        totalReturnPercent: totalReturnPercent,
+        walletBalance: toNumber(data?.walletBalance || 0),
+      });
+      setIsUpdatingPrices(false);
+    } catch (err) {
+      setError(true);
+      setIsUpdatingPrices(false);
+    } finally {
+      setIsLoading(false);
+      setIsRefreshing(false);
+    }
+  };
 
   const handleRefresh = () => {
     fetchInvestments(true);
   };
+
+  useEffect(() => {
+    fetchInvestments();
+
+    // Auto-refresh every 15 seconds
+    const interval = setInterval(() => {
+      fetchInvestments(true);
+    }, 15000);
+
+    return () => clearInterval(interval);
+  }, []);
 
   if (isLoading) return <Loader />;
   if (error) return <ErrorCard message="Failed to load investment summary" />;

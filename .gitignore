@@ -1,6 +1,90 @@
+# ============================================
+# Dependencies
+# ============================================
 node_modules/
 backend/node_modules/
 frontend/node_modules/
-node_modules/
-node_modules/
+
+# ============================================
+# Environment variables (CRITICAL - NEVER COMMIT!)
+# ============================================
+.env
+.env.local
+.env.development
+.env.production
+.env.test
 storage.env
+backend/env.production
+frontend/env.production
+backend/.env
+frontend/.env
+
+# ============================================
+# Documentation with sensitive data
+# ============================================
+backend/RENDER_ENV_SETUP.md
+backend/SECURITY_SUMMARY.md
+backend/RENDER_DEPLOYMENT.md
+HEALTH_CHECK.md
+
+# ============================================
+# Build outputs
+# ============================================
+dist/
+build/
+frontend/dist/
+backend/dist/
+*.lock
+
+# ============================================
+# IDE & Editor settings
+# ============================================
+.vscode/
+.idea/
+*.swp
+*.swo
+*.sublime-project
+*.sublime-workspace
+
+# ============================================
+# Logs
+# ============================================
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# ============================================
+# Test files
+# ============================================
+backend/test-*.js
+backend/examples/
+
+# ============================================
+# Temporary files
+# ============================================
+*.tmp
+*.temp
+.cache/
+.vite/
+
+# ============================================
+# OS files
+# ============================================
+Thumbs.db
+.DS_Store
+
+# ============================================
+# Coverage reports
+# ============================================
+coverage/
+*.lcov
+.nyc_output/
+
+# ============================================
+# Package manager files (optional)
+# ============================================
+package-lock.json.bak
+yarn.lock.bak
+pnpm-lock.yaml.bak

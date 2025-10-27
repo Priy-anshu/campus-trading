@@ -5,12 +5,13 @@ class LeaderboardController {
   static async getLeaderboard(req, res) {
     try {
       const { period = 'day' } = req.query;
+      const userId = req.user?.id || null; // Get userId if authenticated
       
       if (!['day', 'month', 'overall'].includes(period)) {
         return sendError(res, 'Invalid period. Must be day, month, or overall', 400);
       }
 
-      const leaderboard = await leaderboardService.getLeaderboard(period);
+      const leaderboard = await leaderboardService.getLeaderboard(period, userId);
       
       return sendSuccess(res, leaderboard, 'Leaderboard retrieved successfully');
     } catch (error) {

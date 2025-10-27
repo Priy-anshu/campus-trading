@@ -40,12 +40,6 @@ const ProfileModal = ({ isOpen, onClose }: ProfileModalProps) => {
   const { toast } = useToast();
   const { theme, toggleTheme } = useTheme();
 
-  useEffect(() => {
-    if (isOpen) {
-      fetchProfile();
-    }
-  }, [isOpen]);
-
   const fetchProfile = async () => {
     setLoading(true);
     try {
@@ -62,6 +56,19 @@ const ProfileModal = ({ isOpen, onClose }: ProfileModalProps) => {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (isOpen) {
+      fetchProfile();
+      
+      // Auto-refresh profile data every 15 seconds when modal is open
+      const interval = setInterval(() => {
+        fetchProfile();
+      }, 15000);
+      
+      return () => clearInterval(interval);
+    }
+  }, [isOpen]);
 
   const handlePasswordChange = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -160,6 +167,31 @@ const ProfileModal = ({ isOpen, onClose }: ProfileModalProps) => {
           <TabsContent value="profile" className="space-y-4">
             {profile ? (
               <div className="space-y-4">
+                {/* Theme Toggle Card - At the Top */}
+                <Card>
+                  <CardContent className="py-2">
+                    <div className="flex justify-center">
+                      <Button
+                        variant="outline"
+                        onClick={toggleTheme}
+                        className="flex items-center gap-2"
+                      >
+                        {theme === 'light' ? (
+                          <>
+                            <Moon className="h-4 w-4" />
+                            Switch to Dark Mode
+                          </>
+                        ) : (
+                          <>
+                            <Sun className="h-4 w-4" />
+                            Switch to Light Mode
+                          </>
+                        )}
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+
                 <Card>
                   <CardHeader className="pb-3">
                     <CardTitle className="flex items-center gap-2 text-base">
@@ -239,30 +271,6 @@ const ProfileModal = ({ isOpen, onClose }: ProfileModalProps) => {
                           {formatCurrency(profile.totalProfit || 0)}
                         </p>
                       </div>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardContent className="pt-6">
-                    <div className="flex justify-center">
-                      <Button
-                        variant="outline"
-                        onClick={toggleTheme}
-                        className="flex items-center gap-2"
-                      >
-                        {theme === 'light' ? (
-                          <>
-                            <Moon className="h-4 w-4" />
-                            Switch to Dark
-                          </>
-                        ) : (
-                          <>
-                            <Sun className="h-4 w-4" />
-                            Switch to Light
-                          </>
-                        )}
-                      </Button>
                     </div>
                   </CardContent>
                 </Card>

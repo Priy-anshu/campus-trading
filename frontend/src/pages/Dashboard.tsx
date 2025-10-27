@@ -7,9 +7,9 @@ import MostTraded from "@/components/Dashboard/MostTraded";
 import { useAutoRefresh } from "@/hooks/useAutoRefresh";
 
 const Dashboard = () => {
-  // Auto refresh market data every 30 seconds without page reload
+  // Auto refresh market data every 15 seconds without page reload
   useAutoRefresh({
-    interval: 30000,
+    interval: 15000,
     enabled: true,
     onRefresh: () => {
       // Components will handle their own data refresh

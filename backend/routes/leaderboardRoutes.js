@@ -1,5 +1,5 @@
 import express from 'express';
-import { authRequired } from '../middleware/authMiddleware.js';
+import { authRequired, optionalAuth } from '../middleware/authMiddleware.js';
 import User from '../models/User.js';
 
 const router = express.Router();
@@ -39,16 +39,26 @@ function needsMonthlyReset(lastReset) {
   return startOfMonth.getTime() > lastResetDate.getTime();
 }
 
-// Get leaderboard data
-router.get('/leaderboard', async (req, res) => {
+// Get leaderboard data (with optional auth to get user's position if logged in)
+router.get('/leaderboard', optionalAuth, async (req, res) => {
   try {
     const { period = 'overall' } = req.query; // 'day', 'month', 'overall'
     const { limit = 100 } = req.query;
+    const userId = req.userId || null; // Get userId if authenticated (optional)
 
     // Get all users with their profit data
-    const users = await User.find({}, 'username name dailyProfit monthlyProfit totalProfit lastDailyReset lastMonthlyReset lastPortfolioValue')
-      .sort({ [period === 'day' ? 'dailyProfit' : period === 'month' ? 'monthlyProfit' : 'totalProfit']: -1 })
+    // If userId is provided, we need all users to find their actual position
+    const userQuery = User.find({}, 'username name dailyProfit monthlyProfit totalProfit lastDailyReset lastMonthlyReset lastPortfolioValue');
+    
+    // Only limit if userId is not provided
+    if (!userId) {
+      userQuery.sort({ [period === 'day' ? 'dailyProfit' : period === 'month' ? 'monthlyProfit' : 'totalProfit']: -1 })
       .limit(parseInt(limit));
+    } else {
+      userQuery.sort({ [period === 'day' ? 'dailyProfit' : period === 'month' ? 'monthlyProfit' : 'totalProfit']: -1 });
+    }
+    
+    const users = await userQuery;
 
     // Check for daily/monthly resets and update if needed
     const today = getISTDate();
@@ -153,9 +163,25 @@ router.get('/leaderboard', async (req, res) => {
       }));
     }
 
+    // Smart leaderboard logic: if userId provided and not in top 20, show top 19 + user
+    let finalLeaderboard = leaderboard;
+    if (userId && leaderboard.length >= 20) {
+      const userEntry = leaderboard.find(entry => entry.userId.toString() === userId.toString());
+      const top20 = leaderboard.slice(0, 20);
+      const userIsInTop20 = top20.some(entry => entry.userId.toString() === userId.toString());
+      
+      // If user is not in top 20 and we found the user, replace 20th with user's position
+      if (!userIsInTop20 && userEntry) {
+        finalLeaderboard = [
+          ...top20.slice(0, 19),
+          userEntry // User's actual position
+        ];
+      }
+    }
+
     res.json({ 
       success: true, 
-      data: leaderboard,
+      data: finalLeaderboard,
       period,
       lastUpdated: new Date()
     });

@@ -2,7 +2,7 @@ import User from '../models/User.js';
 import DailyProfitService from './DailyProfitService.js';
 
 class LeaderboardService {
-  static async getLeaderboard(period) {
+  static async getLeaderboard(period, userId = null) {
     try {
       const users = await User.find({}).select('name username dailyProfit monthlyProfit totalProfit');
       
@@ -35,6 +35,29 @@ class LeaderboardService {
       leaderboardData.forEach((entry, index) => {
         entry.rank = index + 1;
       });
+
+      // If userId is provided, implement smart leaderboard logic
+      if (userId) {
+        const userEntry = leaderboardData.find(entry => entry.id.toString() === userId.toString());
+        const top20 = leaderboardData.slice(0, 20);
+        const userIsInTop20 = top20.some(entry => entry.id.toString() === userId.toString());
+        
+        // If user is in top 20, return top 20
+        if (userIsInTop20) {
+          return top20;
+        }
+        
+        // If user is not in top 20, return top 19 + user's position
+        if (userEntry) {
+          return [
+            ...top20.slice(0, 19),
+            userEntry // User's position (could be #21, #50, #100, etc.)
+          ];
+        }
+        
+        // If user not found, just return top 20
+        return top20;
+      }
 
       return leaderboardData.slice(0, 20); // Top 20 users
     } catch (error) {

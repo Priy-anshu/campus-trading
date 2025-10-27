@@ -69,10 +69,10 @@ const MostTraded = () => {
     // Initial fetch
     fetchMostTraded();
 
-    // Auto-refresh every 1 minute (60 seconds)
+    // Auto-refresh every 15 seconds
     const interval = setInterval(() => {
       fetchMostTraded();
-    }, 60000);
+    }, 15000);
 
     return () => clearInterval(interval);
   }, []);
@@ -104,8 +104,10 @@ const MostTraded = () => {
                   className="p-3 sm:p-4 rounded-lg border border-border hover:shadow-md transition-all hover:scale-105 cursor-pointer bg-card"
                 >
                   <div className="text-center space-y-2">
-                    {/* Stock Name/Symbol at top */}
+                    {/* Stock Symbol at top */}
                     <p className="font-semibold text-foreground text-sm sm:text-base truncate">{stock.symbol}</p>
+                    {/* Company Name below symbol */}
+                    <p className="text-xs text-muted-foreground truncate px-1">{stock.companyName}</p>
                     
                     {/* Change percentage in middle */}
                     <div className={`flex items-center justify-center gap-1 ${isPositive ? 'text-success' : 'text-destructive'}`}>

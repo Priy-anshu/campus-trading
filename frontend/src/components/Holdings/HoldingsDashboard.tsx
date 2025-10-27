@@ -74,12 +74,12 @@ const HoldingsDashboard = () => {
     }
   }, [portfolioData]);
 
-  // Set up periodic refresh for stock prices every 30 seconds
+  // Set up periodic refresh for stock prices every 15 seconds
   useEffect(() => {
     if (portfolioData?.holdings && portfolioData.holdings.length > 0) {
       const interval = setInterval(() => {
         fetchStockPrices(portfolioData.holdings);
-      }, 30000); // 30 seconds
+      }, 15000); // 15 seconds
 
       return () => clearInterval(interval);
     }

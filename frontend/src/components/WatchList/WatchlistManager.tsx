@@ -81,13 +81,13 @@ const WatchlistManager = () => {
     }
   }, [activeWatchlist, watchlists]);
 
-  // Auto-refresh stock prices every 30 seconds
+  // Auto-refresh stock prices every 15 seconds
   useEffect(() => {
     if (!activeWatchlist) return;
 
     const interval = setInterval(() => {
       fetchStockPrices();
-    }, 30000); // 30 seconds
+    }, 15000); // 15 seconds
 
     return () => clearInterval(interval);
   }, [activeWatchlist, watchlists]);

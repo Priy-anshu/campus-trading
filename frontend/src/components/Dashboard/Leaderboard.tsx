@@ -62,8 +62,8 @@ const Leaderboard = () => {
   useEffect(() => {
     loadAllLeaderboards();
     
-    // Refresh leaderboard data every 30 seconds
-    const interval = setInterval(loadAllLeaderboards, 30000);
+    // Refresh leaderboard data every 15 seconds
+    const interval = setInterval(loadAllLeaderboards, 15000);
     return () => clearInterval(interval);
   }, []);
 

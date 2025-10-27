@@ -191,10 +191,10 @@ const StockDetails = () => {
 
   /**
    * Auto-refresh configuration for real-time data updates
-   * Refreshes stock data every 30 seconds when data is available and no errors exist
+   * Refreshes stock data every 15 seconds when data is available and no errors exist
    */
   useAutoRefresh({
-    interval: 30000, // 30 seconds
+    interval: 15000, // 15 seconds
     enabled: !!stockData && !error, // Only refresh when we have data and no errors
     onRefresh: () => fetchStockData(true) // Use refresh mode for auto-refresh
   });

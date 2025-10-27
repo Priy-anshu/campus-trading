@@ -56,6 +56,7 @@ function toNumber(value) {
 function normalize(item) {
   return {
     symbol: item.symbol || item.tradingsymbol || item.symbolName || '',
+    name: item.name || item.companyName || item.shortName || item.symbol || '',
     lastPrice: toNumber(item.lastPrice ?? item.ltp ?? item.price),
     pChange: toNumber(item.pChange ?? item.changePercent),
     change: toNumber(item.change ?? item.netChange),
@@ -103,19 +104,20 @@ export async function refreshCache() {
         if (lastPrice === 0 && pChange === 0 && change === 0 && totalTradedVolume === 0) {
           newCacheMap[symbol] = prev;
         } else {
-          const stockData = {
-            symbol,
-            lastPrice,
-            pChange,
-            change,
-            totalTradedVolume,
-          };
+        const stockData = {
+          symbol,
+          name: item.name || item.companyName || item.shortName || symbol || '',
+          lastPrice,
+          pChange,
+          change,
+          totalTradedVolume,
+        };
           newCacheMap[symbol] = stockData;
 
           // Prepare for database update
           stocksToUpdate.push({
             symbol: symbol.toUpperCase(),
-            name: item.companyName || item.name || symbol,
+            name: item.name || item.companyName || item.shortName || symbol,
             price: lastPrice,
             change: change,
             changePercent: pChange,
@@ -199,8 +201,8 @@ export async function loadStocksFromDatabase() {
   }
 }
 
-// Initialize cache and start periodic refresh (every 1 minute)
-const INTERVAL_MS = 60 * 1000; // 1 minute interval
+// Initialize cache and start periodic refresh (every 15 seconds)
+const INTERVAL_MS = 15 * 1000; // 15 seconds interval
 loadStocksFromDatabase(); // Load initial data from database
 refreshCache(); // Fetch latest data from API
 setInterval(refreshCache, INTERVAL_MS).unref?.(); // Start periodic refresh

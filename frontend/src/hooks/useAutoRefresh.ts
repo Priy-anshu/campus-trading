@@ -7,7 +7,7 @@ interface UseAutoRefreshOptions {
 }
 
 export const useAutoRefresh = ({ 
-  interval = 30000, // 30 seconds default
+  interval = 15000, // 15 seconds default
   enabled = true,
   onRefresh 
 }: UseAutoRefreshOptions = {}) => {

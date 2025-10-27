@@ -216,33 +216,6 @@ router.put('/fund', async (req, res) => {
   }
 });
 
-// GET /api/portfolio/daily-profit
-router.get('/daily-profit', async (req, res) => {
-  try {
-    const { period = 'day', limit = 30 } = req.query;
-    const userId = req.userId;
-    
-    const { default: portfolioService } = await import('../services/portfolioService.js');
-    const data = await portfolioService.getDailyProfit(userId, period, parseInt(limit));
-    
-    res.json({
-      success: true,
-      data: data.map(item => ({
-        date: item.date,
-        profit: item.profit || item.dailyProfit || 0,
-        totalValue: item.totalValue || item.portfolioValue || 0,
-        trades: item.trades || 0
-      }))
-    });
-  } catch (error) {
-    console.error('Daily profit error:', error);
-    res.status(500).json({ 
-      success: false, 
-      message: 'Error fetching daily profit data' 
-    });
-  }
-});
-
 router.post('/buy', async (req, res) => {
   const { symbol, quantity, price, orderCategory = 'delivery' } = req.body;
   if (!symbol || !quantity || !price) return res.status(400).json({ message: 'Missing fields' });

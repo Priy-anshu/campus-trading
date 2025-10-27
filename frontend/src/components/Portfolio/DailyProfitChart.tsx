@@ -21,11 +21,11 @@ const DailyProfitChart = () => {
     fetchDailyProfitData();
   }, [activeFilter]);
 
-  // Auto-refresh every 30 seconds to get latest data
+  // Auto-refresh every 15 seconds to get latest data
   useEffect(() => {
     const interval = setInterval(() => {
       fetchDailyProfitData();
-    }, 30000); // 30 seconds
+    }, 15000); // 15 seconds
 
     return () => clearInterval(interval);
   }, [activeFilter]);
