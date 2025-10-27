@@ -79,19 +79,15 @@ const MarketTicker = () => {
           const totalDistanceNeeded = totalStockWidth + containerWidth;
           
           // Calculate duration based on speed preference (much faster)
-          const mobileSpeed = 144000; // pixels per second for mobile (4x faster)
-          const desktopSpeed = 72000; // pixels per second for desktop (4x faster)
+          const mobileSpeed = 144000; // pixels per second for mobile
+          const desktopSpeed = 72000; // pixels per second for desktop
           const speed = isMobile ? mobileSpeed : desktopSpeed;
           
           // Calculate duration needed to show all stocks at the desired speed
           const calculatedDuration = (totalDistanceNeeded / speed) * 1000; // convert to milliseconds
           
-          // Use calculated duration if it's reasonable (between 1 minute and 10 minutes)
-          const minDuration = 60000; // 1 minute
-          const maxDuration = 600000; // 10 minutes
-          
-          if (calculatedDuration >= minDuration && calculatedDuration <= maxDuration) {
-            animationDuration = calculatedDuration;
+          // Use calculated duration (no min/max restrictions)
+          animationDuration = Math.max(calculatedDuration, 10000); // At least 10 seconds minimum
             maxDistance = totalDistanceNeeded;
             console.log(`Using calculated duration: ${Math.round(animationDuration/1000)}s for ${stocks.length} stocks`);
           } else {
