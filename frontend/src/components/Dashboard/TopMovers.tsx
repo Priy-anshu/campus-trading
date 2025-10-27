@@ -33,14 +33,18 @@ const TopMovers = () => {
           apiClient.get(ENDPOINTS.losers),
         ]);
 
-        const mapItem = (item: any): StockMover => ({
-          symbol: item.symbol || item.tradingsymbol || item.symbolName || 'N/A',
-          companyName: item.name || item.companyName || item.symbol || '—',
-          logoUrl: '',
-          price: Number(item.lastPrice || item.ltp || 0),
-          changePercent: Number(item.changePercent || item.pChange || item.change || 0),
-          volume: String(item.totalTradedVolume || item.volume || '—'),
-        });
+        const mapItem = (item: any): StockMover => {
+          const symbol = item.symbol || item.tradingsymbol || item.symbolName || 'N/A';
+          const name = item.name || item.companyName || '';
+          return {
+            symbol: symbol,
+            companyName: name && name !== symbol ? name : symbol,
+            logoUrl: '',
+            price: Number(item.lastPrice || item.ltp || 0),
+            changePercent: Number(item.changePercent || item.pChange || item.change || 0),
+            volume: String(item.totalTradedVolume || item.volume || '—'),
+          };
+        };
 
         setGainers((gainersRes.data || gainersRes || []).map(mapItem));
         setLosers((losersRes.data || losersRes || []).map(mapItem));
@@ -76,7 +80,9 @@ const TopMovers = () => {
             <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
               <div className="min-w-0 flex-1">
                 <p className="font-medium text-foreground text-sm sm:text-base truncate">{stock.symbol}</p>
-                <p className="text-xs text-muted-foreground truncate">{stock.companyName}</p>
+                {stock.companyName && stock.companyName !== stock.symbol && (
+                  <p className="text-xs text-muted-foreground truncate">{stock.companyName}</p>
+                )}
               </div>
             </div>
             

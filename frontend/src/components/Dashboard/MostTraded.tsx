@@ -42,14 +42,18 @@ const MostTraded = () => {
         }
         
         // Choose "most traded" by volume; map fields consistently
-        const normalized = stockData.map((it: any) => ({
-          symbol: it.symbol,
-          companyName: it.companyName || it.name || it.symbol,
-          logoUrl: "",
-          price: toNumber(it.price ?? it.lastPrice ?? it.ltp),
-          changePercent: toNumber(it.changePercent ?? it.pChange),
-          volume: toNumber(it.totalTradedVolume ?? it.volume),
-        }));
+        const normalized = stockData.map((it: any) => {
+          const symbol = it.symbol;
+          const name = it.name || it.companyName || '';
+          return {
+            symbol: symbol,
+            companyName: name && name !== symbol ? name : symbol,
+            logoUrl: "",
+            price: toNumber(it.price ?? it.lastPrice ?? it.ltp),
+            changePercent: toNumber(it.changePercent ?? it.pChange),
+            volume: toNumber(it.totalTradedVolume ?? it.volume),
+          };
+        });
         
         const topByVolume = normalized
           .filter((s: any) => s.symbol && s.volume > 0)
@@ -106,8 +110,10 @@ const MostTraded = () => {
                   <div className="text-center space-y-2">
                     {/* Stock Symbol at top */}
                     <p className="font-semibold text-foreground text-sm sm:text-base truncate">{stock.symbol}</p>
-                    {/* Company Name below symbol */}
-                    <p className="text-xs text-muted-foreground truncate px-1">{stock.companyName}</p>
+                    {/* Company Name below symbol - only show if different from symbol */}
+                    {stock.companyName && stock.companyName !== stock.symbol && (
+                      <p className="text-xs text-muted-foreground truncate px-1">{stock.companyName}</p>
+                    )}
                     
                     {/* Change percentage in middle */}
                     <div className={`flex items-center justify-center gap-1 ${isPositive ? 'text-success' : 'text-destructive'}`}>
