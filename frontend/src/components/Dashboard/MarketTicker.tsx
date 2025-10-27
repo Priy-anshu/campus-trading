@@ -67,8 +67,8 @@ const MarketTicker = () => {
     const containerWidth = window.innerWidth;
     const totalDistanceNeeded = totalStockWidth + containerWidth;
     
-    const mobileSpeed = 3000; // pixels per second (slow readable speed)
-    const desktopSpeed = 2400;
+    const mobileSpeed = 150; // pixels per second (very very slow)
+    const desktopSpeed = 120;
     const speed = isMobile ? mobileSpeed : desktopSpeed;
     
     const calculatedDuration = (totalDistanceNeeded / speed) * 1000;
@@ -211,14 +211,18 @@ const MarketTicker = () => {
     return () => clearInterval(interval);
   }, []); // Empty dependency array - runs independently
 
-  // Animation is disabled - stocks display statically
-  // Set initial animation position but don't start animation loop
+  // Set initial animation position and start very slow animation
   useEffect(() => {
-    // Set initial position (static at 0)
-    if (animationRef.current) {
-      animationRef.current.style.transform = 'translateX(0px)';
-    }
-  }, []); // Empty dependency array - runs once
+    // Set initial position immediately
+    setAnimationPosition();
+    
+    // Start the animation loop with very slow movement
+    const animationInterval = setInterval(() => {
+      setAnimationPosition();
+    }, 100); // Update every 100ms for smooth animation
+
+    return () => clearInterval(animationInterval);
+  }, []); // Empty dependency array - animation runs independently
 
   // Cleanup storage on component unmount (optional)
   useEffect(() => {
