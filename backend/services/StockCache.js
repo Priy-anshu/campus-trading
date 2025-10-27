@@ -104,13 +104,20 @@ export async function refreshCache() {
         if (lastPrice === 0 && pChange === 0 && change === 0 && totalTradedVolume === 0) {
           newCacheMap[symbol] = prev;
         } else {
-        // Get name from API, but only use it if different from symbol
-        const rawName = item.name || item.companyName || item.shortName || '';
-        const name = rawName && rawName !== symbol ? rawName : '';
+        // Preserve existing name from cache/database if it's good
+        // Only update name if API provides a better one
+        const existingName = prev.name || '';
+        const rawNameFromAPI = item.name || item.companyName || item.shortName || '';
+        const nameFromAPI = rawNameFromAPI && rawNameFromAPI !== symbol ? rawNameFromAPI : '';
+        
+        // Use API name only if:
+        // 1. We don't have an existing good name, OR
+        // 2. The API provides a different name than we have
+        const finalName = existingName || nameFromAPI;
         
         const stockData = {
           symbol,
-          name,
+          name: finalName,
           lastPrice,
           pChange,
           change,
@@ -121,7 +128,7 @@ export async function refreshCache() {
           // Prepare for database update
           stocksToUpdate.push({
             symbol: symbol.toUpperCase(),
-            name: name, // Use the processed name (empty if same as symbol)
+            name: finalName, // Preserve good names in database
             price: lastPrice,
             change: change,
             changePercent: pChange,
@@ -188,6 +195,7 @@ export async function loadStocksFromDatabase() {
       // Map database records to cache format
       cache.all = stocks.map(stock => ({
         symbol: stock.symbol,
+        name: stock.name || '', // Include name from DB
         lastPrice: stock.price,
         pChange: stock.changePercent,
         change: stock.change,
@@ -199,9 +207,62 @@ export async function loadStocksFromDatabase() {
       cache.gainers = sortedByChange.slice(0, 300); // Top 300 gainers
       cache.losers = sortedByChange.reverse().slice(0, 300); // Top 300 losers
       cache.lastUpdated = Date.now();
+      
+      console.log(`[${new Date().toISOString()}] Loaded ${stocks.length} stocks from database`);
     }
   } catch (error) {
     console.error(`[${new Date().toISOString()}] Error loading stocks from database:`, error.message);
+  }
+}
+
+/**
+ * One-time initialization: fetch all company names from Yahoo Finance and store in DB
+ * This runs once on server startup if we don't have names in database
+ */
+export async function initializeCompanyNames() {
+  try {
+    // Check if we already have company names in database
+    const sampleStock = await Stock.findOne({ isActive: true, name: { $exists: true, $ne: '', $ne: null } });
+    
+    if (sampleStock && sampleStock.name) {
+      console.log(`[${new Date().toISOString()}] Company names already exist in database, skipping Yahoo lookup`);
+      return;
+    }
+    
+    console.log(`[${new Date().toISOString()}] No company names found in database, fetching from Yahoo Finance...`);
+    
+    // Import the fallback function that uses Yahoo Finance
+    const { fetchAllNiftyQuotes } = await import('./ExternalAPIServices.js');
+    const result = await fetchAllNiftyQuotes();
+    
+    if (result.success && result.data && result.data.length > 0) {
+      // Store only symbols that have valid names (different from symbol)
+      const stocksWithNames = result.data.filter(item => {
+        return item.name && item.name !== item.symbol && item.name !== '';
+      });
+      
+      // Update database with company names
+      for (const item of stocksWithNames) {
+        await Stock.updateOne(
+          { symbol: item.symbol.toUpperCase() },
+          { 
+            $set: { 
+              name: item.name,
+              lastUpdated: new Date()
+            }
+          },
+          { upsert: true }
+        );
+      }
+      
+      console.log(`[${new Date().toISOString()}] Fetched and stored ${stocksWithNames.length} company names from Yahoo Finance`);
+      
+      // Reload cache with the new names
+      await loadStocksFromDatabase();
+    }
+  } catch (error) {
+    console.error(`[${new Date().toISOString()}] Error initializing company names:`, error.message);
+    // Continue even if this fails - we can still use NSE API for prices
   }
 }
 
@@ -216,11 +277,14 @@ function isMarketOpen() {
   return istHours >= 9 && istHours < 17;
 }
 
-// Initialize cache and load from database
-loadStocksFromDatabase(); // Load initial data from database
+// Initialize cache - run company name initialization first, then load from DB
+(async () => {
+  await initializeCompanyNames(); // One-time fetch from Yahoo if needed
+  await loadStocksFromDatabase(); // Load from database
+  await refreshCache(); // Fetch latest prices
+})();
 
-// Fetch data on server start
-refreshCache(); // Fetch latest data from API once on startup
+// Note: refreshCache will be called again by setInterval below
 
 // Start periodic refresh only during market hours (every 15 seconds)
 setInterval(() => {
