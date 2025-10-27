@@ -20,12 +20,11 @@ backend/.env
 frontend/.env
 
 # ============================================
-# Documentation with sensitive data
+# Documentation files (keep local only)
 # ============================================
-backend/RENDER_ENV_SETUP.md
-backend/SECURITY_SUMMARY.md
-backend/RENDER_DEPLOYMENT.md
-HEALTH_CHECK.md
+*.md
+!README.md
+!.gitignore
 
 # ============================================
 # Build outputs
