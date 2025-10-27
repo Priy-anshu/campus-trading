@@ -93,10 +93,18 @@ const MarketTicker = () => {
         const startTime = getAnimationStartTime();
         const elapsed = Date.now() - startTime;
         
-        const { duration, distance } = animationParamsRef.current;
-        // Use modulo for looping animation
-        const progress = (elapsed % duration) / duration;
-        const translateX = -progress * distance;
+        const { distance } = animationParamsRef.current;
+        const isMobile = window.innerWidth < 768;
+        const speed = isMobile ? 150 : 120; // Very slow speed
+        
+        // Scroll continuously without looping - stop at the end
+        let translateX = -(elapsed / 1000 * speed);
+        
+        // Stop at the end - don't go beyond the total distance
+        if (Math.abs(translateX) > distance) {
+          translateX = -distance;
+        }
+        
         pauseOffsetRef.current = translateX; // Store current position
         animationRef.current.style.transform = `translateX(${translateX}px)`;
       }
