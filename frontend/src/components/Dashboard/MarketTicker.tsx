@@ -16,11 +16,11 @@ const MarketTicker = () => {
   const [stocks, setStocks] = useState<StockData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(false);
-  const [isPaused, setIsPaused] = useState(false);
   const animationRef = useRef<HTMLDivElement>(null);
   const animationParamsRef = useRef<{duration: number; distance: number}>({duration: 60000, distance: 5000});
   const pauseOffsetRef = useRef(0); // Track position when paused
   const pauseStartTimeRef = useRef(0); // Track when pause started
+  const isPausedRef = useRef(false); // Use ref for pause state
 
   // Function to get or create persistent animation start time
   const getAnimationStartTime = () => {
@@ -85,7 +85,7 @@ const MarketTicker = () => {
   // Function to set animation position based on elapsed time
   const setAnimationPosition = () => {
     if (animationRef.current) {
-      if (isPaused) {
+      if (isPausedRef.current) {
         // Maintain current position when paused
         const currentPos = pauseOffsetRef.current;
         animationRef.current.style.transform = `translateX(${currentPos}px)`;
@@ -111,7 +111,7 @@ const MarketTicker = () => {
       }
       pauseStartTimeRef.current = Date.now();
     }
-    setIsPaused(true);
+    isPausedRef.current = true;
   };
   
   const handleMouseLeave = () => {
@@ -125,7 +125,7 @@ const MarketTicker = () => {
       sessionStorage.setItem('marketTickerSessionTime', newStartTime.toString());
       (window as any).__marketTickerStartTime = newStartTime;
     }
-    setIsPaused(false);
+    isPausedRef.current = false;
   };
 
   // Function to reset animation to start from NIFTY 200
