@@ -69,5 +69,30 @@ router.get('/status', (req, res) => {
   res.json(getStatus());
 });
 
+// Debug endpoint to check raw external API response
+router.get('/debug/raw-api', async (req, res) => {
+  try {
+    const { fetchAllStockInsiderTrades } = await import('../services/ExternalAPIServices.js');
+    const result = await fetchAllStockInsiderTrades();
+    
+    // Return first 5 stocks as sample
+    const sampleData = result.success && result.data && result.data.length > 0 
+      ? result.data.slice(0, 5) 
+      : [];
+    
+    res.json({
+      success: result.success,
+      message: 'Sample of first 5 stocks from external API',
+      sampleData: sampleData,
+      totalStocks: result.data?.length || 0
+    });
+  } catch (error) {
+    res.status(500).json({ 
+      error: 'Failed to fetch from external API',
+      message: error.message 
+    });
+  }
+});
+
 export default router;
 
