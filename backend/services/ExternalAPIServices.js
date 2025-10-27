@@ -220,9 +220,17 @@ async function fetchYahooQuotesForSymbols(symbols) {
       const resp = await axios.get(url, { headers: { 'User-Agent': 'Mozilla/5.0' } });
       const quotes = resp.data?.quoteResponse?.result || [];
       for (const q of quotes) {
+        // Get name from Yahoo - prefer longName if different from symbol, otherwise shortName
+        const symbol = (q.symbol || '').replace('.NS', '');
+        let name = q.longName || q.shortName || '';
+        // If name is same as symbol or empty, use longName first, then shortName
+        if (!name || name === symbol) {
+          name = q.longName || q.shortName || symbol;
+        }
+        
         results.push({
-          symbol: (q.symbol || '').replace('.NS', ''),
-          name: q.shortName || q.longName || q.symbol || '',
+          symbol,
+          name,
           lastPrice: q.regularMarketPrice ?? null,
           pChange: q.regularMarketChangePercent ?? null,
           change: q.regularMarketChange ?? null,
