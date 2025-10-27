@@ -17,6 +17,7 @@ const MarketTicker = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(false);
   const animationRef = useRef<HTMLDivElement>(null);
+  const animationParamsRef = useRef<{duration: number; distance: number}>({duration: 60000, distance: 5000});
 
   // Function to get or create persistent animation start time
   const getAnimationStartTime = () => {
@@ -54,49 +55,39 @@ const MarketTicker = () => {
     return now;
   };
 
+  // Function to calculate animation parameters (only recalculate when stocks change)
+  const updateAnimationParams = () => {
+    const isMobile = window.innerWidth < 768;
+    const stockCardWidth = 200;
+    const gap = 16;
+    const totalStockWidth = stocks.length * (stockCardWidth + gap);
+    const containerWidth = window.innerWidth;
+    const totalDistanceNeeded = totalStockWidth + containerWidth;
+    
+    const mobileSpeed = 2000000; // pixels per second
+    const desktopSpeed = 1500000;
+    const speed = isMobile ? mobileSpeed : desktopSpeed;
+    
+    const calculatedDuration = (totalDistanceNeeded / speed) * 1000;
+    const finalDuration = Math.max(calculatedDuration, 10000);
+    
+    animationParamsRef.current = {
+      duration: finalDuration,
+      distance: totalDistanceNeeded
+    };
+    
+    console.log(`Animation: ${stocks.length} stocks, ${Math.round(finalDuration/1000)}s, ${totalDistanceNeeded}px`);
+  };
+  
   // Function to set animation position based on elapsed time
   const setAnimationPosition = () => {
     if (animationRef.current) {
       const startTime = getAnimationStartTime();
       const elapsed = Date.now() - startTime;
       
-      // Different animation speeds for mobile vs desktop
-      const isMobile = window.innerWidth < 768; // md breakpoint
-      
-      // Try to calculate optimal duration based on stock count
-      let animationDuration = 300000; // Default: 5 minutes fallback
-      let maxDistance = isMobile ? 7500 : 2000; // Default distances
-      
-      if (stocks.length > 0) {
-        try {
-          // Calculate the exact distance needed to show all stocks
-          const stockCardWidth = 200; // min-w-[200px] from CSS
-          const gap = 16; // gap-4 = 16px
-          const totalStockWidth = stocks.length * (stockCardWidth + gap);
-          const containerWidth = window.innerWidth;
-          
-          // Calculate how much distance we need to cover to show all stocks
-          const totalDistanceNeeded = totalStockWidth + containerWidth;
-          
-          // Calculate duration based on speed preference (very fast)
-          const mobileSpeed = 2000000; // pixels per second for mobile (ultra fast)
-          const desktopSpeed = 1500000; // pixels per second for desktop (ultra fast)
-          const speed = isMobile ? mobileSpeed : desktopSpeed;
-          
-          // Calculate duration needed to show all stocks at the desired speed
-          const calculatedDuration = (totalDistanceNeeded / speed) * 1000; // convert to milliseconds
-          
-          // Use calculated duration (no min/max restrictions)
-          animationDuration = Math.max(calculatedDuration, 10000); // At least 10 seconds minimum
-          maxDistance = totalDistanceNeeded;
-          console.log(`Using calculated duration: ${Math.round(animationDuration/1000)}s for ${stocks.length} stocks`);
-        } catch (error) {
-          console.log('Using fallback duration: 1 hour (calculation failed)');
-        }
-      }
-      
-      const progress = (elapsed % animationDuration) / animationDuration;
-      const translateX = -progress * maxDistance;
+      const { duration, distance } = animationParamsRef.current;
+      const progress = (elapsed % duration) / duration;
+      const translateX = -progress * distance;
       animationRef.current.style.transform = `translateX(${translateX}px)`;
     }
   };
@@ -138,7 +129,8 @@ const MarketTicker = () => {
         setStocks(finalStocks);
         setIsLoading(false);
         
-        // Don't reset animation on navigation - let it continue from stored position
+        // Update animation parameters when stocks are loaded
+        setTimeout(() => updateAnimationParams(), 0);
       } catch (err) {
         setError(true);
         setIsLoading(false);
@@ -147,6 +139,13 @@ const MarketTicker = () => {
 
     fetchStocks();
   }, []); // Empty dependency array - only runs once
+
+  // Update animation parameters when stocks change
+  useEffect(() => {
+    if (stocks.length > 0) {
+      updateAnimationParams();
+    }
+  }, [stocks.length]); // Only recalculate when stock count changes
 
   // Periodic refresh to update stock values using React state
   useEffect(() => {
