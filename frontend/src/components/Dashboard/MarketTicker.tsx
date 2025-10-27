@@ -67,8 +67,8 @@ const MarketTicker = () => {
     const containerWidth = window.innerWidth;
     const totalDistanceNeeded = totalStockWidth + containerWidth;
     
-    const mobileSpeed = 75000; // pixels per second (1/4 slower)
-    const desktopSpeed = 60000;
+    const mobileSpeed = 62500; // pixels per second (reduced by 1/6)
+    const desktopSpeed = 50000;
     const speed = isMobile ? mobileSpeed : desktopSpeed;
     
     const calculatedDuration = (totalDistanceNeeded / speed) * 1000;
