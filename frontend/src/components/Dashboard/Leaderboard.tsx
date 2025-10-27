@@ -38,8 +38,10 @@ const Leaderboard = () => {
     }
   };
 
-  const loadAllLeaderboards = async () => {
-    setLoading(true);
+  const loadAllLeaderboards = async (isInitial = false) => {
+    if (isInitial) {
+      setLoading(true);
+    }
     try {
       const [dayData, monthData, overallData] = await Promise.all([
         fetchLeaderboard('day'),
@@ -55,15 +57,18 @@ const Leaderboard = () => {
     } catch (error) {
       // Silently handle errors
     } finally {
-      setLoading(false);
+      if (isInitial) {
+        setLoading(false);
+      }
     }
   };
 
   useEffect(() => {
-    loadAllLeaderboards();
+    // Initial load with loading state
+    loadAllLeaderboards(true);
     
-    // Refresh leaderboard data every 15 seconds
-    const interval = setInterval(loadAllLeaderboards, 15000);
+    // Refresh leaderboard data every 15 seconds without showing loading
+    const interval = setInterval(() => loadAllLeaderboards(false), 15000);
     return () => clearInterval(interval);
   }, []);
 
