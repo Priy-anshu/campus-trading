@@ -17,7 +17,6 @@ const MarketTicker = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(false);
   const animationRef = useRef<HTMLDivElement>(null);
-  const animationParamsRef = useRef<{duration: number; distance: number}>({duration: 60000, distance: 5000});
   const pauseOffsetRef = useRef(0); // Track position when paused
   const pauseStartTimeRef = useRef(0); // Track when pause started
   const isPausedRef = useRef(false); // Use ref for pause state
@@ -58,29 +57,8 @@ const MarketTicker = () => {
     return now;
   };
 
-  // Function to calculate animation parameters (only recalculate when stocks change)
-  const updateAnimationParams = () => {
-    const isMobile = window.innerWidth < 768;
-    const stockCardWidth = 200;
-    const gap = 16;
-    const totalStockWidth = stocks.length * (stockCardWidth + gap);
-    const containerWidth = window.innerWidth;
-    const totalDistanceNeeded = totalStockWidth + containerWidth;
-    
-    const mobileSpeed = 150; // pixels per second (very very slow)
-    const desktopSpeed = 120;
-    const speed = isMobile ? mobileSpeed : desktopSpeed;
-    
-    const calculatedDuration = (totalDistanceNeeded / speed) * 1000;
-    const finalDuration = Math.max(calculatedDuration, 10000);
-    
-    animationParamsRef.current = {
-      duration: finalDuration,
-      distance: totalDistanceNeeded
-    };
-    
-    console.log(`Animation: ${stocks.length} stocks, ${Math.round(finalDuration/1000)}s, ${totalDistanceNeeded}px`);
-  };
+  // Simple animation: 40 minutes duration
+  const ANIMATION_DURATION = 40 * 60 * 1000; // 40 minutes in milliseconds
   
   // Function to set animation position based on elapsed time
   const setAnimationPosition = () => {
@@ -93,13 +71,8 @@ const MarketTicker = () => {
         const startTime = getAnimationStartTime();
         const elapsed = Date.now() - startTime;
         
-        const isMobile = window.innerWidth < 768;
-        const speed = isMobile ? 150 : 120; // Very slow speed
-        const distancePerStock = 216 + 16; // width + gap
-        
-        // Scroll continuously using modulo to create seamless loop
-        const scrollPosition = (elapsed / 1000 * speed) % (stocks.length * distancePerStock);
-        const translateX = -scrollPosition;
+        // Simple: scroll 1 pixel per 10ms = 100px per second (very slow)
+        const translateX = -(elapsed % ANIMATION_DURATION) * 0.1;
         
         pauseOffsetRef.current = translateX; // Store current position
         animationRef.current.style.transform = `translateX(${translateX}px)`;
@@ -170,8 +143,7 @@ const MarketTicker = () => {
         setStocks(finalStocks);
         setIsLoading(false);
         
-        // Update animation parameters when stocks are loaded
-        setTimeout(() => updateAnimationParams(), 0);
+        // Stocks loaded, animation will auto-start
       } catch (err) {
         setError(true);
         setIsLoading(false);
@@ -181,12 +153,7 @@ const MarketTicker = () => {
     fetchStocks();
   }, []); // Empty dependency array - only runs once
 
-  // Update animation parameters when stocks change
-  useEffect(() => {
-    if (stocks.length > 0) {
-      updateAnimationParams();
-    }
-  }, [stocks.length]); // Only recalculate when stock count changes
+  // No need to update animation params - using simple fixed duration
 
   // Periodic refresh to update stock values using React state
   useEffect(() => {
