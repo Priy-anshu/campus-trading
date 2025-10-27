@@ -75,15 +75,38 @@ router.get('/debug/raw-api', async (req, res) => {
     const { fetchAllStockInsiderTrades } = await import('../services/ExternalAPIServices.js');
     const result = await fetchAllStockInsiderTrades();
     
-    // Return first 5 stocks as sample
+    // Return first 3 stocks as sample with detailed info
     const sampleData = result.success && result.data && result.data.length > 0 
-      ? result.data.slice(0, 5) 
+      ? result.data.slice(0, 3).map(item => ({
+          symbol: item.symbol,
+          name: item.name,
+          rawName: item.name,
+          lastPrice: item.lastPrice,
+          pChange: item.pChange
+        }))
       : [];
+    
+    // Also try to fetch directly from Yahoo to see raw response
+    const axios = (await import('axios')).default;
+    const testUrl = 'https://query1.finance.yahoo.com/v7/finance/quote?symbols=RELIANCE.NS,TCS.NS';
+    let rawYahooResponse = null;
+    try {
+      const yahooResp = await axios.get(testUrl, { headers: { 'User-Agent': 'Mozilla/5.0' } });
+      rawYahooResponse = yahooResp.data?.quoteResponse?.result?.slice(0, 2).map(q => ({
+        symbol: q.symbol,
+        shortName: q.shortName,
+        longName: q.longName,
+        regularMarketPrice: q.regularMarketPrice
+      }));
+    } catch (e) {
+      rawYahooResponse = { error: e.message };
+    }
     
     res.json({
       success: result.success,
-      message: 'Sample of first 5 stocks from external API',
-      sampleData: sampleData,
+      message: 'Comparing what we get vs Yahoo Finance raw data',
+      ourData: sampleData,
+      rawYahooData: rawYahooResponse,
       totalStocks: result.data?.length || 0
     });
   } catch (error) {
