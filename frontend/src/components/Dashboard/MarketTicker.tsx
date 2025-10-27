@@ -211,18 +211,14 @@ const MarketTicker = () => {
     return () => clearInterval(interval);
   }, []); // Empty dependency array - runs independently
 
-  // Set initial animation position and start animation (independent of stocks data)
+  // Animation is disabled - stocks display statically
+  // Set initial animation position but don't start animation loop
   useEffect(() => {
-    // Set initial position immediately
-    setAnimationPosition();
-    
-    // Start the animation loop
-    const animationInterval = setInterval(() => {
-      setAnimationPosition();
-    }, 100); // Update every 100ms for smooth animation
-
-    return () => clearInterval(animationInterval);
-  }, []); // Empty dependency array - animation runs independently
+    // Set initial position (static at 0)
+    if (animationRef.current) {
+      animationRef.current.style.transform = 'translateX(0px)';
+    }
+  }, []); // Empty dependency array - runs once
 
   // Cleanup storage on component unmount (optional)
   useEffect(() => {
