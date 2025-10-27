@@ -206,7 +206,7 @@ const MarketTicker = () => {
       } catch (err) {
         // Silently handle refresh errors
       }
-    }, 15000); // Refresh every 15 seconds
+    }, 60000); // Refresh every 60 seconds (less frequent to prevent flickering)
 
     return () => clearInterval(interval);
   }, []); // Empty dependency array - runs independently
