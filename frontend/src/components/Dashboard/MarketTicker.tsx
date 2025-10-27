@@ -79,8 +79,8 @@ const MarketTicker = () => {
           const totalDistanceNeeded = totalStockWidth + containerWidth;
           
           // Calculate duration based on speed preference (much faster)
-          const mobileSpeed = 144000; // pixels per second for mobile
-          const desktopSpeed = 72000; // pixels per second for desktop
+          const mobileSpeed = 300000; // pixels per second for mobile (10x faster)
+          const desktopSpeed = 200000; // pixels per second for desktop (10x faster)
           const speed = isMobile ? mobileSpeed : desktopSpeed;
           
           // Calculate duration needed to show all stocks at the desired speed
