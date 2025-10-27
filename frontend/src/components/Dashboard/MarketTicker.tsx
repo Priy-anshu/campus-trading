@@ -95,9 +95,11 @@ const MarketTicker = () => {
         
         const isMobile = window.innerWidth < 768;
         const speed = isMobile ? 150 : 120; // Very slow speed
+        const distancePerStock = 216 + 16; // width + gap
         
-        // Scroll continuously without looping back
-        const translateX = -(elapsed / 1000 * speed);
+        // Scroll continuously using modulo to create seamless loop
+        const scrollPosition = (elapsed / 1000 * speed) % (stocks.length * distancePerStock);
+        const translateX = -scrollPosition;
         
         pauseOffsetRef.current = translateX; // Store current position
         animationRef.current.style.transform = `translateX(${translateX}px)`;
