@@ -203,7 +203,7 @@ const Navbar = () => {
                 </div>
               )}
               
-              <div id="notification-menu" className="relative">
+              <div id="notification-menu" className="relative mr-1">
                 <Button 
                   variant="ghost" 
                   size="icon" 
