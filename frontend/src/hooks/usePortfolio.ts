@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { ENDPOINTS, apiClient } from '@/api/config';
 import { useToast } from '@/hooks/use-toast';
+import { addTradeNotification } from '@/components/NotificationDropdown';
 
 /**
  * Interface defining the structure of portfolio data
@@ -139,6 +140,9 @@ export const usePortfolio = () => {
         description: `Bought ${quantity} shares of ${symbol} at ₹${price}`,
       });
       
+      // Add trade notification
+      addTradeNotification('BUY', symbol, quantity, price);
+      
       // Refresh portfolio data to reflect the purchase
       await refreshPortfolio();
       
@@ -178,6 +182,9 @@ export const usePortfolio = () => {
         title: 'Stock sold successfully',
         description: `Sold ${quantity} shares of ${symbol} at ₹${price}`,
       });
+      
+      // Add trade notification
+      addTradeNotification('SELL', symbol, quantity, price);
       
       // Refresh portfolio data to reflect the sale
       await refreshPortfolio();

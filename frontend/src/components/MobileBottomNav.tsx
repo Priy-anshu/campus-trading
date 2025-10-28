@@ -21,7 +21,6 @@ const MobileBottomNav: React.FC = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [userMenuOpen, setUserMenuOpen] = useState(false);
-  const [unreadNotifications, setUnreadNotifications] = useState(3); // Mock count - replace with real data
   const menuRef = useRef<HTMLDivElement>(null);
 
   const handleLogout = async () => {
@@ -125,14 +124,6 @@ const MobileBottomNav: React.FC = () => {
               >
                 <Bell className="h-4 w-4" />
                 <span>Notifications</span>
-                {unreadNotifications > 0 && (
-                  <Badge 
-                    variant="destructive" 
-                    className="ml-auto h-5 w-5 flex items-center justify-center text-xs p-0"
-                  >
-                    {unreadNotifications > 9 ? '9+' : unreadNotifications}
-                  </Badge>
-                )}
               </button>
               <button
                 onClick={() => {

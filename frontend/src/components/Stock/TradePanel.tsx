@@ -14,6 +14,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { formatCurrency } from "@/utils/formatCurrency";
+import { addTradeNotification } from "@/components/NotificationDropdown";
 
 /**
  * Props interface for TradePanel component
@@ -131,6 +132,9 @@ const TradePanel = ({ symbol, currentPrice, onTradeSuccess }: TradePanelProps) =
       // Show success notification
       toast({ title: "Order placed", description: `Bought ${quantity} ${symbol}` });
       
+      // Add trade notification
+      addTradeNotification('BUY', symbol, quantity, effectivePrice);
+      
       // Trigger data refresh after successful trade
       if (onTradeSuccess) {
         onTradeSuccess();
@@ -185,6 +189,9 @@ const TradePanel = ({ symbol, currentPrice, onTradeSuccess }: TradePanelProps) =
       
       // Show success notification
       toast({ title: "Order placed", description: `Sold ${quantity} ${symbol}` });
+      
+      // Add trade notification
+      addTradeNotification('SELL', symbol, quantity, effectivePrice);
       
       // Trigger data refresh after successful trade
       if (onTradeSuccess) {

@@ -17,7 +17,6 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import NotFound from "./pages/NotFound";
 import ProtectedRoute from "./components/ProtectedRoute";
-import { DesktopNotificationBar } from "./components/Notifications/DesktopNotificationBar";
 
 const queryClient = new QueryClient();
 
@@ -29,7 +28,6 @@ const App = () => (
         <Sonner />
         <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
           <StockDataProvider>
-            <DesktopNotificationBar />
             <Routes>
               <Route path="/" element={<LandingPage />} />
               <Route path="/login" element={<Login />} />

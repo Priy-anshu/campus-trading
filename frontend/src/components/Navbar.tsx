@@ -1,4 +1,4 @@
-import { TrendingUp, Search, /* Bell, */ MoreVertical, LogOut, ChevronDown, User } from "lucide-react";
+import { TrendingUp, Search, Bell, MoreVertical, LogOut, ChevronDown, User } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { logout } from "@/services/authService";
@@ -7,6 +7,7 @@ import { useEffect, useRef, useState } from "react";
 import { ENDPOINTS, apiClient } from "@/api/config";
 import ProfileModal from "./ProfileModal";
 import MobileBottomNav from "./MobileBottomNav";
+import { NotificationDropdown } from "./NotificationDropdown";
 
 const Navbar = () => {
   const location = useLocation();
@@ -17,6 +18,7 @@ const Navbar = () => {
   const [open, setOpen] = useState(false);
   const [profileModalOpen, setProfileModalOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const [notificationOpen, setNotificationOpen] = useState(false);
   const inputRef = useRef<HTMLInputElement | null>(null);
   const timeoutRef = useRef<number | undefined>(undefined);
   
@@ -42,6 +44,7 @@ const Navbar = () => {
       if (!inputRef.current) return;
       if (!(e.target as HTMLElement).closest('#global-search') && !(e.target as HTMLElement).closest('#mobile-search')) setOpen(false);
       if (!(e.target as HTMLElement).closest('#user-menu')) setUserMenuOpen(false);
+      if (!(e.target as HTMLElement).closest('#notification-menu')) setNotificationOpen(false);
     });
 
     // Listen for profile modal open event from mobile bottom nav
@@ -200,9 +203,23 @@ const Navbar = () => {
                 </div>
               )}
               
-                  {/* <Button variant="ghost" size="icon" className="h-9 w-9">
-                    <Bell className="h-4 w-4" />
-                  </Button> */}
+              <div id="notification-menu" className="relative">
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  className="h-9 w-9"
+                  onClick={() => setNotificationOpen(!notificationOpen)}
+                  title="Notifications"
+                >
+                  <Bell className="h-4 w-4" />
+                </Button>
+                
+                <NotificationDropdown 
+                  isOpen={notificationOpen}
+                  onToggle={() => setNotificationOpen(!notificationOpen)}
+                />
+              </div>
+              
               <div id="user-menu" className="relative">
                 <Button 
                   variant="ghost" 
