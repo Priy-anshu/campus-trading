@@ -131,7 +131,7 @@ router.post('/login', async (req, res) => {
 });
 
 router.get('/user', authRequired, async (req, res) => {
-  const user = await User.findById(req.userId).select('name username email mobileNumber dateOfBirth gender walletBalance totalProfit');
+  const user = await User.findById(req.userId).select('name username email mobileNumber dateOfBirth gender walletBalance');
   if (!user) return res.status(404).json({ message: 'User not found' });
   res.json({ 
     id: user._id, 
@@ -141,8 +141,7 @@ router.get('/user', authRequired, async (req, res) => {
     mobileNumber: user.mobileNumber || null,
     dateOfBirth: user.dateOfBirth || null,
     gender: user.gender || null,
-    walletBalance: user.walletBalance,
-    totalProfit: user.totalProfit
+    walletBalance: user.walletBalance
   });
 });
 

@@ -21,7 +21,6 @@ interface UserProfile {
   dateOfBirth: string;
   gender: string;
   walletBalance: number;
-  totalProfit: number;
 }
 
 interface ProfileModalProps {
@@ -71,8 +70,7 @@ const ProfileModal = ({ isOpen, onClose }: ProfileModalProps) => {
     if (profile && portfolioData) {
       setProfile(prev => prev ? {
         ...prev,
-        walletBalance: portfolioData.walletBalance || prev.walletBalance,
-        totalProfit: portfolioData.totalProfit || prev.totalProfit
+        walletBalance: portfolioData.walletBalance || prev.walletBalance
       } : prev);
     }
   }, [portfolioData]);
@@ -269,14 +267,6 @@ const ProfileModal = ({ isOpen, onClose }: ProfileModalProps) => {
                         <Label className="text-xs font-medium text-muted-foreground">Wallet Balance</Label>
                         <p className="text-lg font-bold text-green-600">
                           {formatCurrency(profile.walletBalance || 0)}
-                        </p>
-                      </div>
-                      <div>
-                        <Label className="text-xs font-medium text-muted-foreground">Total Profit</Label>
-                        <p className={`text-lg font-bold ${
-                          (profile.totalProfit || 0) >= 0 ? 'text-green-600' : 'text-red-600'
-                        }`}>
-                          {formatCurrency(profile.totalProfit || 0)}
                         </p>
                       </div>
                     </div>

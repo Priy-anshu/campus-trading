@@ -114,7 +114,6 @@ class AuthService {
       gender: user.gender,
       walletBalance: user.walletBalance,
       dailyProfit: user.dailyProfit,
-      totalProfit: user.totalProfit,
       oneDayReturn: user.oneDayReturn,
       monthlyReturn: user.monthlyReturn
     };

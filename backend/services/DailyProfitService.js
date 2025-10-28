@@ -302,24 +302,69 @@ export class DailyProfitService {
   }
 
   /**
-   * Update daily profits for all users (called periodically)
+   * Update daily profits for all users (called periodically and at midnight)
+   * This function ensures ALL users get proper daily/monthly resets regardless of activity
    */
-  static async updateAllUsersDailyProfits() {
+  static async updateAllUsersDailyProfits(isScheduledReset = false) {
     try {
+      const startTime = new Date();
       const users = await User.find({});
       
+      let dailyResets = 0;
+      let monthlyResets = 0;
+      let errors = 0;
+      
+      // Only show initial log for scheduled resets or if verbose logging needed
+      if (isScheduledReset) {
+        console.log(`[${new Date().toISOString()}] Starting batch update for ${users.length} users`);
+      }
+      
       for (const user of users) {
-        const currentValue = await this.calculatePortfolioValue(user._id);
-        
-        // Get previous value from last calculation (stored in user's lastPortfolioValue or calculate)
-        const previousValue = user.lastPortfolioValue || currentValue;
-        
-        // Update daily profit
-        await this.updateDailyProfit(user._id, currentValue, previousValue);
-        
-        // Store current value for next calculation
-        user.lastPortfolioValue = currentValue;
-        await user.save();
+        try {
+          const currentValue = await this.calculatePortfolioValue(user._id);
+          
+          // Get previous value from last calculation (stored in user's lastPortfolioValue or calculate)
+          const previousValue = user.lastPortfolioValue || currentValue;
+          
+          // Check what resets will happen (for logging)
+          const today = getStartOfDayIST();
+          const startOfMonth = getStartOfMonthIST();
+          
+          const isNewDay = !user.lastDailyReset || 
+            user.lastDailyReset.toISOString().split('T')[0] !== today.toISOString().split('T')[0];
+          
+          const isNewMonth = !user.lastMonthlyReset || 
+            user.lastMonthlyReset.toISOString().split('T')[0] !== startOfMonth.toISOString().split('T')[0];
+          
+          if (isNewDay) dailyResets++;
+          if (isNewMonth) monthlyResets++;
+          
+          // Update daily profit (this handles both daily and monthly resets)
+          await this.updateDailyProfit(user._id, currentValue, previousValue);
+          
+          // Store current value for next calculation
+          user.lastPortfolioValue = currentValue;
+          await user.save();
+          
+        } catch (userError) {
+          console.error(`[${new Date().toISOString()}] Error updating user ${user._id}:`, userError.message);
+          errors++;
+        }
+      }
+      
+      const endTime = new Date();
+      const duration = (endTime.getTime() - startTime.getTime()) / 1000;
+      
+      // Only show detailed completion log if:
+      // 1. It's a scheduled reset (midnight), OR
+      // 2. There were actual resets, OR  
+      // 3. There were errors
+      if (isScheduledReset || dailyResets > 0 || monthlyResets > 0 || errors > 0) {
+        console.log(`[${new Date().toISOString()}] Batch update completed in ${duration}s:`);
+        console.log(`  - Users processed: ${users.length}`);
+        console.log(`  - Daily resets: ${dailyResets}`);
+        console.log(`  - Monthly resets: ${monthlyResets}`);
+        console.log(`  - Errors: ${errors}`);
       }
 
     } catch (error) {

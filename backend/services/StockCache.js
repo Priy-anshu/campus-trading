@@ -266,6 +266,9 @@ export async function initializeCompanyNames() {
   }
 }
 
+// Track market status to avoid repetitive logging
+let lastMarketStatus = null; // null = unknown, true = open, false = closed
+
 // Helper function to check if market is open (9 AM - 5 PM IST)
 function isMarketOpen() {
   const now = new Date();
@@ -282,18 +285,40 @@ function isMarketOpen() {
   await initializeCompanyNames(); // One-time fetch from Yahoo if needed
   await loadStocksFromDatabase(); // Load from database
   await refreshCache(); // Fetch latest prices
+  
+  // Log initial market status on startup
+  const initialMarketStatus = isMarketOpen();
+  if (initialMarketStatus) {
+    console.log(`[${new Date().toISOString()}] Market is open - external API calls active`);
+  } else {
+    console.log(`[${new Date().toISOString()}] Market is closed - external API calls paused`);
+  }
+  lastMarketStatus = initialMarketStatus;
 })();
 
 // Note: refreshCache will be called again by setInterval below
 
 // Start periodic refresh only during market hours (every 15 seconds)
 setInterval(() => {
-  if (isMarketOpen()) {
+  const currentMarketStatus = isMarketOpen();
+  
+  if (currentMarketStatus) {
+    // Market is open - refresh cache
     refreshCache();
+    
+    // Log only when market status changes from closed to open
+    if (lastMarketStatus === false) {
+      console.log(`[${new Date().toISOString()}] Market opened - starting external API calls`);
+    }
   } else {
-    // Market is closed - log but don't refresh
-    console.log(`[${new Date().toISOString()}] Market closed - skipping external API refresh`);
+    // Market is closed - don't refresh, log only when status changes
+    if (lastMarketStatus === true) {
+      console.log(`[${new Date().toISOString()}] Market closed - stopping external API calls`);
+    }
   }
+  
+  // Update last known market status
+  lastMarketStatus = currentMarketStatus;
 }, 15 * 1000).unref?.(); // Check every 15 seconds
 
 /**
