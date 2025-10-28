@@ -8,17 +8,20 @@ import {
   MoreVertical, 
   LogOut,
   ChevronDown,
-  User
+  User,
+  Bell
 } from 'lucide-react';
 import { logout } from '@/services/authService';
 import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
+import { Badge } from '@/components/ui/badge';
 
 const MobileBottomNav: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const [unreadNotifications, setUnreadNotifications] = useState(3); // Mock count - replace with real data
   const menuRef = useRef<HTMLDivElement>(null);
 
   const handleLogout = async () => {
@@ -112,7 +115,25 @@ const MobileBottomNav: React.FC = () => {
           </button>
           
           {userMenuOpen && (
-            <div className="absolute bottom-full right-0 mb-2 w-40 rounded-md border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-lg">
+            <div className="absolute bottom-full right-0 mb-2 w-48 rounded-md border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-lg">
+              <button
+                onClick={() => {
+                  setUserMenuOpen(false);
+                  navigate('/notifications');
+                }}
+                className="w-full px-4 py-2 text-left text-sm hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2 text-gray-700 dark:text-gray-300 relative"
+              >
+                <Bell className="h-4 w-4" />
+                <span>Notifications</span>
+                {unreadNotifications > 0 && (
+                  <Badge 
+                    variant="destructive" 
+                    className="ml-auto h-5 w-5 flex items-center justify-center text-xs p-0"
+                  >
+                    {unreadNotifications > 9 ? '9+' : unreadNotifications}
+                  </Badge>
+                )}
+              </button>
               <button
                 onClick={() => {
                   setUserMenuOpen(false);

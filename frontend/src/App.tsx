@@ -12,10 +12,12 @@ import Index from "./pages/Index";
 import StockDetails from "./pages/StockDetails";
 import OrderHistory from "./pages/OrderHistory";
 import Watchlist from "./pages/Watchlist";
+import Notifications from "./pages/Notifications";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import NotFound from "./pages/NotFound";
 import ProtectedRoute from "./components/ProtectedRoute";
+import { DesktopNotificationBar } from "./components/Notifications/DesktopNotificationBar";
 
 const queryClient = new QueryClient();
 
@@ -27,6 +29,7 @@ const App = () => (
         <Sonner />
         <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
           <StockDataProvider>
+            <DesktopNotificationBar />
             <Routes>
               <Route path="/" element={<LandingPage />} />
               <Route path="/login" element={<Login />} />
@@ -68,6 +71,14 @@ const App = () => (
                 element={
                   <ProtectedRoute>
                     <Watchlist />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/notifications" 
+                element={
+                  <ProtectedRoute>
+                    <Notifications />
                   </ProtectedRoute>
                 } 
               />
