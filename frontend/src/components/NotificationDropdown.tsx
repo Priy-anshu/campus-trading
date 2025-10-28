@@ -123,7 +123,7 @@ export const NotificationDropdown = ({ isOpen, onToggle }: NotificationDropdownP
   if (!isOpen) return null
 
   return (
-    <div className="absolute right-0 top-10 w-80 rounded-md border border-border bg-popover shadow-lg z-50">
+    <div className="absolute right-0 top-10 w-80 max-h-[calc(100vh-5rem)] rounded-md border border-border bg-popover shadow-lg z-50 overflow-hidden">
       {/* Header */}
       <div className="flex items-center justify-between p-4 pb-2">
         <div className="flex items-center space-x-2">
@@ -165,8 +165,8 @@ export const NotificationDropdown = ({ isOpen, onToggle }: NotificationDropdownP
       <Separator />
 
       {/* Notifications List */}
-      <div className="max-h-80">
-        <ScrollArea className="h-full">
+      <ScrollArea className="max-h-80">
+        <div className="max-h-80">
           {notifications.length > 0 ? (
             <div className="space-y-0">
               {notifications.slice(0, 10).map((notification, index) => (
@@ -241,8 +241,8 @@ export const NotificationDropdown = ({ isOpen, onToggle }: NotificationDropdownP
               </p>
             </div>
           )}
-        </ScrollArea>
-      </div>
+        </div>
+      </ScrollArea>
 
       {/* Footer */}
       {notifications.length > 10 && (
