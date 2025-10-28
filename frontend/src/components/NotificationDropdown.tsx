@@ -173,13 +173,13 @@ export const NotificationDropdown = ({ isOpen, onToggle }: NotificationDropdownP
                 <div key={notification.id}>
                   <div 
                     className={cn(
-                      "px-4 py-3 hover:bg-muted/50 cursor-pointer transition-colors",
+                      "group px-4 py-3 hover:bg-muted/50 cursor-pointer transition-colors",
                       !notification.read && "bg-blue-50/50 dark:bg-blue-950/20"
                     )}
                     onClick={() => !notification.read && markAsRead(notification.id)}
                   >
-                    <div className="flex items-start justify-between">
-                      <div className="flex items-start space-x-3">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex items-start space-x-3 flex-1 min-w-0">
                         <div className="flex-shrink-0 mt-1">
                           {notification.type === 'BUY' ? (
                             <div className="flex items-center justify-center w-6 h-6 rounded-full bg-green-100 dark:bg-green-900/30">
@@ -199,7 +199,7 @@ export const NotificationDropdown = ({ isOpen, onToggle }: NotificationDropdownP
                           )}>
                             {notification.type} Order Executed
                           </p>
-                          <p className="text-xs text-muted-foreground mt-0.5">
+                          <p className="text-xs text-muted-foreground mt-0.5 break-words">
                             {notification.type} {notification.quantity} shares of {notification.symbol} at ₹{notification.price.toLocaleString('en-IN')}
                           </p>
                           <p className="text-xs text-muted-foreground mt-1">
@@ -208,11 +208,14 @@ export const NotificationDropdown = ({ isOpen, onToggle }: NotificationDropdownP
                         </div>
                       </div>
                       
-                      <div className="flex items-center space-x-1 ml-2">
+                      <div className="flex items-start flex-col space-y-1 flex-shrink-0">
+                        {!notification.read && (
+                          <div className="w-2 h-2 bg-blue-500 rounded-full" />
+                        )}
                         <Button
                           variant="ghost"
                           size="sm"
-                          className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100"
+                          className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
                           onClick={(e) => {
                             e.stopPropagation()
                             removeNotification(notification.id)
@@ -220,10 +223,6 @@ export const NotificationDropdown = ({ isOpen, onToggle }: NotificationDropdownP
                         >
                           <X className="h-3 w-3" />
                         </Button>
-                        
-                        {!notification.read && (
-                          <div className="w-2 h-2 bg-blue-500 rounded-full flex-shrink-0" />
-                        )}
                       </div>
                     </div>
                   </div>
