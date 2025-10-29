@@ -259,19 +259,25 @@ export class DailyProfitService {
       if (!user) return 0;
 
       const today = getStartOfDayIST();
+      const yesterday = new Date(today);
+      yesterday.setDate(yesterday.getDate() - 1);
       const currentPortfolioValue = await this.calculatePortfolioValue(userId);
       
-      // Check if user was created today
+      // Check if user was created today or yesterday
       const userCreatedDate = user.createdAt ? 
         new Date(user.createdAt.toISOString().split('T')[0]) : null;
       const todayDate = new Date(today.toISOString().split('T')[0]);
+      const yesterdayDate = new Date(yesterday.toISOString().split('T')[0]);
       
       const userCreatedToday = userCreatedDate && 
         userCreatedDate.getTime() === todayDate.getTime();
+      const userCreatedYesterday = userCreatedDate && 
+        userCreatedDate.getTime() === yesterdayDate.getTime();
       
-      // If user was created today, return 0 (they haven't earned anything today)
+      // If user was created today or yesterday, return 0
+      // Users created yesterday haven't had a full day yet, so they should show ₹0 for today
       // This ensures ₹0 appears in leaderboard, portfolio dashboard, and everywhere else
-      if (userCreatedToday) {
+      if (userCreatedToday || userCreatedYesterday) {
         return 0;
       }
       
