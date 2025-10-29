@@ -216,7 +216,7 @@ const HoldingsDashboard = () => {
             showValues && summary && summary?.investedValue > 0
               ? {
                   amount: `₹${Number(summary.oneDayReturn || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}`,
-                  percent: `${((summary.oneDayReturn || 0) / summary.investedValue) * 100).toFixed(2)}%`,
+                  percent: `${(((summary.oneDayReturn || 0) / summary.investedValue) * 100).toFixed(2)}%`,
                   isPositive: Number(summary.oneDayReturn || 0) >= 0,
                 }
               : undefined
