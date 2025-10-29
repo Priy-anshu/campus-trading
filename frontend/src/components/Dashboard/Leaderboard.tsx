@@ -99,7 +99,23 @@ const Leaderboard = () => {
     }
     const isPositive = profit >= 0;
     const sign = isPositive ? "+" : "";
-    return `${sign}₹${profit.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`;
+    const absProfit = Math.abs(profit);
+    
+    // Use compact format for very large numbers (>= 1 lakh)
+    if (absProfit >= 100000) {
+      const lakhs = absProfit / 100000;
+      if (lakhs >= 100) {
+        // Show in crores
+        const crores = lakhs / 100;
+        return `${sign}₹${crores.toFixed(1)}Cr`;
+      } else {
+        // Show in lakhs
+        return `${sign}₹${lakhs.toFixed(1)}L`;
+      }
+    }
+    
+    // Regular format with Indian numbering
+    return `${sign}₹${absProfit.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`;
   };
 
   const currentData = leaderboardData[activeTab as keyof typeof leaderboardData] || [];
@@ -187,7 +203,23 @@ const LeaderboardContent = ({ data, loading, period }: LeaderboardContentProps) 
     }
     const isPositive = profit >= 0;
     const sign = isPositive ? "+" : "";
-    return `${sign}₹${profit.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`;
+    const absProfit = Math.abs(profit);
+    
+    // Use compact format for very large numbers (>= 1 lakh)
+    if (absProfit >= 100000) {
+      const lakhs = absProfit / 100000;
+      if (lakhs >= 100) {
+        // Show in crores
+        const crores = lakhs / 100;
+        return `${sign}₹${crores.toFixed(1)}Cr`;
+      } else {
+        // Show in lakhs
+        return `${sign}₹${lakhs.toFixed(1)}L`;
+      }
+    }
+    
+    // Regular format with Indian numbering
+    return `${sign}₹${absProfit.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`;
   };
 
   if (loading) {
@@ -242,8 +274,8 @@ const LeaderboardContent = ({ data, loading, period }: LeaderboardContentProps) 
               <p className="text-xs text-muted-foreground truncate">{entry.name || 'Unknown User'}</p>
             </div>
           </div>
-          <div className="text-right flex-shrink-0">
-            <p className={`font-semibold ${
+          <div className="text-right flex-shrink-0 whitespace-nowrap">
+            <p className={`font-semibold text-sm ${
               (entry.totalProfit || 0) >= 0 ? 'text-green-600' : 'text-red-600'
             }`}>
               {formatProfit(entry.totalProfit)}
