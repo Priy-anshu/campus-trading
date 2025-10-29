@@ -259,57 +259,35 @@ export class DailyProfitService {
       if (!user) return 0;
 
       const today = getStartOfDayIST();
-      const yesterday = new Date(today);
-      yesterday.setDate(yesterday.getDate() - 1);
-      
       const currentPortfolioValue = await this.calculatePortfolioValue(userId);
       
-      // Check if user was created today or yesterday
+      // Check if user was created today
       const userCreatedDate = user.createdAt ? 
         new Date(user.createdAt.toISOString().split('T')[0]) : null;
       const todayDate = new Date(today.toISOString().split('T')[0]);
-      const yesterdayDate = new Date(yesterday.toISOString().split('T')[0]);
       
       const userCreatedToday = userCreatedDate && 
         userCreatedDate.getTime() === todayDate.getTime();
-      const userCreatedYesterday = userCreatedDate && 
-        userCreatedDate.getTime() === yesterdayDate.getTime();
       
-      // If user was created today, return 0 (they haven't had a full day yet)
+      // If user was created today, return 0 (they haven't earned anything today)
+      // This ensures ₹0 appears in leaderboard, portfolio dashboard, and everywhere else
       if (userCreatedToday) {
         return 0;
       }
       
-      // If user was created yesterday, use initial investment (₹100,000) as baseline
-      // This fixes users who have incorrect yesterdayTotalEarnings from old reset logic
-      if (userCreatedYesterday) {
-        const initialInvestment = 100000;
-        // If yesterdayTotalEarnings is 0, negative, or very different from current value,
-        // it's likely incorrect (from old reset logic), so use initial investment
-        const yesterdayTotalEarnings = user.yesterdayTotalEarnings || 0;
-        
-        // If yesterdayTotalEarnings seems wrong (0, negative, or way off), use initial investment
-        // Otherwise, if it was set correctly in today's reset, use it
-        if (yesterdayTotalEarnings <= 0 || 
-            Math.abs(yesterdayTotalEarnings - currentPortfolioValue) > 50000) {
-          // Use initial investment as baseline - shows their actual gains from account creation
-          return currentPortfolioValue - initialInvestment;
-        } else {
-          // Use yesterdayTotalEarnings if it seems correct
-          return currentPortfolioValue - yesterdayTotalEarnings;
-        }
-      }
-
-      // For all other users (created before yesterday), calculate normally
+      // For all users (new users have yesterdayTotalEarnings = 100000 set at creation)
+      // Calculate: current portfolio value - yesterday's baseline
       let yesterdayTotalEarnings = user.yesterdayTotalEarnings || 0;
       
-      // If yesterdayTotalEarnings is 0 for old users, use lastPortfolioValue as fallback
-      // This handles cases where data might be incorrect
+      // Fallback: if yesterdayTotalEarnings is 0 for old users, use lastPortfolioValue
+      // This handles edge cases where data might be incorrect
       if (yesterdayTotalEarnings === 0 && user.lastPortfolioValue && user.lastPortfolioValue > 0) {
         yesterdayTotalEarnings = user.lastPortfolioValue;
       }
       
-      // Standard calculation: current value - yesterday's value
+      // Standard calculation: current value - yesterday's baseline
+      // For new users created with baseline = 100000: shows their actual profit from start
+      // For old users: shows their actual 1-day change
       return currentPortfolioValue - yesterdayTotalEarnings;
     } catch (error) {
       console.error(`[${new Date().toISOString()}] Error getting 1-day return for user ${userId}:`, error.message);

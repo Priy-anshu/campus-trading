@@ -83,6 +83,14 @@ router.post('/register', async (req, res) => {
     if (dateOfBirth) userData.dateOfBirth = new Date(dateOfBirth);
     if (gender) userData.gender = gender;
     
+    // Set initial wallet balance and baseline values for earnings calculation
+    const initialBalance = 100000;
+    userData.walletBalance = initialBalance;
+    userData.yesterdayTotalEarnings = initialBalance; // Set to wallet balance for easy daily calculation
+    userData.lastMonthTotalEarnings = initialBalance; // Set to wallet balance for easy monthly calculation
+    userData.lastPortfolioValue = initialBalance; // Initial portfolio value
+    userData.startOfMonthPortfolioValue = initialBalance; // Start of month baseline
+    
     const user = await User.create(userData);
     
     await Portfolio.create({ user: user._id, holdings: [] });

@@ -19,7 +19,8 @@ class AuthService {
     const saltRounds = 10;
     const hashedPassword = await bcrypt.hash(password, saltRounds);
 
-    // Create user
+    // Create user with initial wallet balance and baseline values for earnings calculation
+    const initialBalance = 100000;
     const user = new User({
       name,
       email,
@@ -28,7 +29,11 @@ class AuthService {
       mobileNumber,
       dateOfBirth,
       gender,
-      walletBalance: 100000 // Initial wallet balance
+      walletBalance: initialBalance, // Initial wallet balance
+      yesterdayTotalEarnings: initialBalance, // Set to wallet balance for easy daily calculation
+      lastMonthTotalEarnings: initialBalance, // Set to wallet balance for easy monthly calculation
+      lastPortfolioValue: initialBalance, // Initial portfolio value
+      startOfMonthPortfolioValue: initialBalance // Start of month baseline
     });
 
     await user.save();
