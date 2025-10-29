@@ -262,6 +262,8 @@ export class DailyProfitService {
       const yesterday = new Date(today);
       yesterday.setDate(yesterday.getDate() - 1);
       
+      const currentPortfolioValue = await this.calculatePortfolioValue(userId);
+      
       // Check if user was created today or yesterday
       const userCreatedDate = user.createdAt ? 
         new Date(user.createdAt.toISOString().split('T')[0]) : null;
@@ -273,15 +275,23 @@ export class DailyProfitService {
       const userCreatedYesterday = userCreatedDate && 
         userCreatedDate.getTime() === yesterdayDate.getTime();
       
-      // If user was created today or yesterday, return 0
-      // (For users created yesterday with old data, this fixes them immediately)
-      // (Reset logic will handle future resets correctly)
-      if (userCreatedToday || userCreatedYesterday) {
+      // If user was created today, return 0 (they haven't had a full day yet)
+      if (userCreatedToday) {
         return 0;
+      }
+      
+      // If user was created yesterday, use initial investment (₹100,000) as baseline
+      // This way they see their actual gains/losses from today
+      if (userCreatedYesterday) {
+        const initialInvestment = 100000;
+        // Use yesterdayTotalEarnings if it's been set correctly, otherwise use initial investment
+        const baseline = user.yesterdayTotalEarnings && user.yesterdayTotalEarnings > 0 
+          ? user.yesterdayTotalEarnings 
+          : initialInvestment;
+        return currentPortfolioValue - baseline;
       }
 
       // For all other users (created before yesterday), calculate normally
-      const currentPortfolioValue = await this.calculatePortfolioValue(userId);
       const yesterdayTotalEarnings = user.yesterdayTotalEarnings || 0;
       
       // Standard calculation: current value - yesterday's value
