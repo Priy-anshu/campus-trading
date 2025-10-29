@@ -33,17 +33,48 @@ export class DailyProfitService {
 
       // If it's a new day, reset daily profit and store yesterday's earnings
       if (isNewDay) {
-        // Store yesterday's total earnings for 1-day return calculation
-        user.yesterdayTotalEarnings = user.lastPortfolioValue || currentPortfolioValue;
+        // Check if user was created yesterday
+        const yesterday = new Date(today);
+        yesterday.setDate(yesterday.getDate() - 1);
+        const userCreatedDate = user.createdAt ? 
+          new Date(user.createdAt.toISOString().split('T')[0]) : null;
+        const yesterdayDate = new Date(yesterday.toISOString().split('T')[0]);
+        const userCreatedYesterday = userCreatedDate && 
+          userCreatedDate.getTime() === yesterdayDate.getTime();
+        
+        // If user was created yesterday, set yesterdayTotalEarnings to current value
+        // This ensures their 1-day return will be 0 (they haven't had a baseline yet)
+        // Otherwise, use lastPortfolioValue (normal case for existing users)
+        if (userCreatedYesterday) {
+          user.yesterdayTotalEarnings = currentPortfolioValue;
+        } else {
+          user.yesterdayTotalEarnings = user.lastPortfolioValue || currentPortfolioValue;
+        }
+        
         user.dailyProfit = 0;
         user.lastDailyReset = today;
       }
 
       // If it's a new month, reset monthly profit and store start of month portfolio value
       if (isNewMonth) {
-        // Store the portfolio value at the start of this month for monthly return calculation
-        user.startOfMonthPortfolioValue = currentPortfolioValue;
-        user.lastMonthTotalEarnings = user.lastPortfolioValue || currentPortfolioValue;
+        // Check if user was created this month
+        const userCreatedDate = user.createdAt ? 
+          new Date(user.createdAt.toISOString().split('T')[0]) : null;
+        const userCreatedThisMonth = userCreatedDate && 
+          userCreatedDate.getFullYear() === startOfMonth.getFullYear() &&
+          userCreatedDate.getMonth() === startOfMonth.getMonth();
+        
+        // If user was created this month, set startOfMonthPortfolioValue to current value
+        // This ensures their monthly return will be 0 (they haven't had a baseline yet)
+        // Otherwise, use lastPortfolioValue (normal case for existing users)
+        if (userCreatedThisMonth) {
+          user.startOfMonthPortfolioValue = currentPortfolioValue;
+          user.lastMonthTotalEarnings = currentPortfolioValue;
+        } else {
+          user.startOfMonthPortfolioValue = currentPortfolioValue;
+          user.lastMonthTotalEarnings = user.lastPortfolioValue || currentPortfolioValue;
+        }
+        
         user.monthlyProfit = 0;
         user.lastMonthlyReset = startOfMonth;
       } else {
@@ -219,15 +250,41 @@ export class DailyProfitService {
 
   /**
    * Get 1-day return for a user (today's total earnings - yesterday's total earnings)
+   * Note: Reset logic handles users created yesterday going forward, but we need to handle
+   * existing users created yesterday who have incorrect data from old reset logic
    */
   static async getOneDayReturn(userId) {
     try {
       const user = await User.findById(userId);
       if (!user) return 0;
 
+      const today = getStartOfDayIST();
+      const yesterday = new Date(today);
+      yesterday.setDate(yesterday.getDate() - 1);
+      
+      // Check if user was created today or yesterday
+      const userCreatedDate = user.createdAt ? 
+        new Date(user.createdAt.toISOString().split('T')[0]) : null;
+      const todayDate = new Date(today.toISOString().split('T')[0]);
+      const yesterdayDate = new Date(yesterday.toISOString().split('T')[0]);
+      
+      const userCreatedToday = userCreatedDate && 
+        userCreatedDate.getTime() === todayDate.getTime();
+      const userCreatedYesterday = userCreatedDate && 
+        userCreatedDate.getTime() === yesterdayDate.getTime();
+      
+      // If user was created today or yesterday, return 0
+      // (For users created yesterday with old data, this fixes them immediately)
+      // (Reset logic will handle future resets correctly)
+      if (userCreatedToday || userCreatedYesterday) {
+        return 0;
+      }
+
+      // For all other users (created before yesterday), calculate normally
       const currentPortfolioValue = await this.calculatePortfolioValue(userId);
       const yesterdayTotalEarnings = user.yesterdayTotalEarnings || 0;
       
+      // Standard calculation: current value - yesterday's value
       return currentPortfolioValue - yesterdayTotalEarnings;
     } catch (error) {
       console.error(`[${new Date().toISOString()}] Error getting 1-day return for user ${userId}:`, error.message);
@@ -237,6 +294,7 @@ export class DailyProfitService {
 
   /**
    * Get monthly return for a user (current portfolio value - start of month portfolio value)
+   * Note: Reset logic handles users created this month, so we only need to check for this month
    */
   static async getMonthlyReturn(userId) {
     try {
@@ -245,6 +303,18 @@ export class DailyProfitService {
 
       const currentPortfolioValue = await this.calculatePortfolioValue(userId);
       const startOfMonth = getStartOfMonthIST();
+      
+      // Check if user was created this month (before reset happens)
+      const userCreatedDate = user.createdAt ? 
+        new Date(user.createdAt.toISOString().split('T')[0]) : null;
+      const userCreatedThisMonth = userCreatedDate && 
+        userCreatedDate.getFullYear() === startOfMonth.getFullYear() &&
+        userCreatedDate.getMonth() === startOfMonth.getMonth();
+      
+      // If user was created this month, return 0 (reset logic will handle this)
+      if (userCreatedThisMonth) {
+        return 0;
+      }
       
       // Check if we're in a new month
       const isNewMonth = !user.lastMonthlyReset || 
@@ -255,6 +325,7 @@ export class DailyProfitService {
         return currentPortfolioValue - 100000;
       } else {
         // Same month - monthly return is current portfolio value - start of month portfolio value
+        // (which was set correctly by reset logic for users created this month)
         const startOfMonthValue = user.startOfMonthPortfolioValue || 100000;
         return currentPortfolioValue - startOfMonthValue;
       }
