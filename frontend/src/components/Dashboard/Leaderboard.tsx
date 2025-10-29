@@ -223,12 +223,12 @@ const LeaderboardContent = ({ data, loading, period }: LeaderboardContentProps) 
       {safeData.slice(0, 20).map((entry, index) => (
         <div
           key={`${entry.userId || 'unknown'}-${entry.rank || index}`}
-          className={`flex items-center justify-between p-3 rounded-lg border transition-all hover:bg-accent/50 ${
+          className={`flex items-center justify-between gap-2 p-3 rounded-lg border transition-all hover:bg-accent/50 ${
             (entry.rank || 0) <= 3 ? 'bg-gradient-to-r from-primary/5 to-transparent' : ''
           }`}
         >
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3 min-w-0 flex-1">
+            <div className="flex items-center gap-2 flex-shrink-0">
               {getRankIcon(entry.rank)}
               <Badge 
                 variant={getRankBadgeVariant(entry.rank)}
@@ -237,12 +237,12 @@ const LeaderboardContent = ({ data, loading, period }: LeaderboardContentProps) 
                 #{entry.rank || '--'}
               </Badge>
             </div>
-            <div>
-              <p className="font-medium text-foreground">{entry.username || 'Unknown'}</p>
-              <p className="text-xs text-muted-foreground">{entry.name || 'Unknown User'}</p>
+            <div className="min-w-0 flex-1">
+              <p className="font-medium text-foreground truncate">{entry.username || 'Unknown'}</p>
+              <p className="text-xs text-muted-foreground truncate">{entry.name || 'Unknown User'}</p>
             </div>
           </div>
-          <div className="text-right">
+          <div className="text-right flex-shrink-0">
             <p className={`font-semibold ${
               (entry.totalProfit || 0) >= 0 ? 'text-green-600' : 'text-red-600'
             }`}>
