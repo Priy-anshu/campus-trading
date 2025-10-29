@@ -132,8 +132,8 @@ const HoldingsDashboard = () => {
     investedValue: totalInvestedValue,
     totalReturn: totalReturn,
     totalReturnPercent: totalReturnPercent,
-    oneDayReturn: 0, // We don't have 1D data
-    oneDayReturnPercent: 0,
+    oneDayReturn: portfolioData?.oneDayReturn || 0, // Get 1D return from API
+    oneDayReturnPercent: totalInvestedValue > 0 ? ((portfolioData?.oneDayReturn || 0) / totalInvestedValue) * 100 : 0,
   };
 
   // If no portfolio data, show empty state
@@ -211,13 +211,13 @@ const HoldingsDashboard = () => {
         />
         <HoldingsSummaryCard
           title="1D Returns"
-          value={showValues ? `₹${Number(portfolioData?.oneDayReturn || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}` : "••••••"}
+          value={showValues ? `₹${Number(summary?.oneDayReturn || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}` : "••••••"}
           change={
-            showValues && portfolioData && summary?.investedValue > 0
+            showValues && summary && summary?.investedValue > 0
               ? {
-                  amount: `₹${Number(portfolioData.oneDayReturn || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}`,
-                  percent: `${((Number(portfolioData.oneDayReturn || 0) / summary.investedValue) * 100).toFixed(2)}%`,
-                  isPositive: Number(portfolioData.oneDayReturn || 0) >= 0,
+                  amount: `₹${Number(summary.oneDayReturn || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}`,
+                  percent: `${((summary.oneDayReturn || 0) / summary.investedValue) * 100).toFixed(2)}%`,
+                  isPositive: Number(summary.oneDayReturn || 0) >= 0,
                 }
               : undefined
           }

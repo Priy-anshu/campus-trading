@@ -205,10 +205,17 @@ export const usePortfolio = () => {
   };
 
   /**
-   * Fetch portfolio data when component mounts
+   * Fetch portfolio data when component mounts and set up auto-refresh
    */
   useEffect(() => {
     fetchPortfolio();
+    
+    // Auto-refresh every 15 seconds
+    const interval = setInterval(() => {
+      fetchPortfolio();
+    }, 15000);
+    
+    return () => clearInterval(interval);
   }, []);
 
   /**
