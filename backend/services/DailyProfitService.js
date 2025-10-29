@@ -281,18 +281,33 @@ export class DailyProfitService {
       }
       
       // If user was created yesterday, use initial investment (₹100,000) as baseline
-      // This way they see their actual gains/losses from today
+      // This fixes users who have incorrect yesterdayTotalEarnings from old reset logic
       if (userCreatedYesterday) {
         const initialInvestment = 100000;
-        // Use yesterdayTotalEarnings if it's been set correctly, otherwise use initial investment
-        const baseline = user.yesterdayTotalEarnings && user.yesterdayTotalEarnings > 0 
-          ? user.yesterdayTotalEarnings 
-          : initialInvestment;
-        return currentPortfolioValue - baseline;
+        // If yesterdayTotalEarnings is 0, negative, or very different from current value,
+        // it's likely incorrect (from old reset logic), so use initial investment
+        const yesterdayTotalEarnings = user.yesterdayTotalEarnings || 0;
+        
+        // If yesterdayTotalEarnings seems wrong (0, negative, or way off), use initial investment
+        // Otherwise, if it was set correctly in today's reset, use it
+        if (yesterdayTotalEarnings <= 0 || 
+            Math.abs(yesterdayTotalEarnings - currentPortfolioValue) > 50000) {
+          // Use initial investment as baseline - shows their actual gains from account creation
+          return currentPortfolioValue - initialInvestment;
+        } else {
+          // Use yesterdayTotalEarnings if it seems correct
+          return currentPortfolioValue - yesterdayTotalEarnings;
+        }
       }
 
       // For all other users (created before yesterday), calculate normally
-      const yesterdayTotalEarnings = user.yesterdayTotalEarnings || 0;
+      let yesterdayTotalEarnings = user.yesterdayTotalEarnings || 0;
+      
+      // If yesterdayTotalEarnings is 0 for old users, use lastPortfolioValue as fallback
+      // This handles cases where data might be incorrect
+      if (yesterdayTotalEarnings === 0 && user.lastPortfolioValue && user.lastPortfolioValue > 0) {
+        yesterdayTotalEarnings = user.lastPortfolioValue;
+      }
       
       // Standard calculation: current value - yesterday's value
       return currentPortfolioValue - yesterdayTotalEarnings;
@@ -304,7 +319,7 @@ export class DailyProfitService {
 
   /**
    * Get monthly return for a user (current portfolio value - start of month portfolio value)
-   * Note: Reset logic handles users created this month, so we only need to check for this month
+   * Reset logic handles setting proper baselines for new users
    */
   static async getMonthlyReturn(userId) {
     try {
@@ -313,18 +328,6 @@ export class DailyProfitService {
 
       const currentPortfolioValue = await this.calculatePortfolioValue(userId);
       const startOfMonth = getStartOfMonthIST();
-      
-      // Check if user was created this month (before reset happens)
-      const userCreatedDate = user.createdAt ? 
-        new Date(user.createdAt.toISOString().split('T')[0]) : null;
-      const userCreatedThisMonth = userCreatedDate && 
-        userCreatedDate.getFullYear() === startOfMonth.getFullYear() &&
-        userCreatedDate.getMonth() === startOfMonth.getMonth();
-      
-      // If user was created this month, return 0 (reset logic will handle this)
-      if (userCreatedThisMonth) {
-        return 0;
-      }
       
       // Check if we're in a new month
       const isNewMonth = !user.lastMonthlyReset || 
@@ -335,7 +338,8 @@ export class DailyProfitService {
         return currentPortfolioValue - 100000;
       } else {
         // Same month - monthly return is current portfolio value - start of month portfolio value
-        // (which was set correctly by reset logic for users created this month)
+        // Reset logic will have set startOfMonthPortfolioValue correctly (either to current value
+        // for users created this month, or to lastPortfolioValue for existing users)
         const startOfMonthValue = user.startOfMonthPortfolioValue || 100000;
         return currentPortfolioValue - startOfMonthValue;
       }
