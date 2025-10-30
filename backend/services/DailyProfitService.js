@@ -259,41 +259,13 @@ export class DailyProfitService {
       if (!user) return 0;
 
       const today = getStartOfDayIST();
-      const yesterday = new Date(today);
-      yesterday.setDate(yesterday.getDate() - 1);
       const currentPortfolioValue = await this.calculatePortfolioValue(userId);
-      
-      // Check if user was created today or yesterday
-      const userCreatedDate = user.createdAt ? 
-        new Date(user.createdAt.toISOString().split('T')[0]) : null;
-      const todayDate = new Date(today.toISOString().split('T')[0]);
-      const yesterdayDate = new Date(yesterday.toISOString().split('T')[0]);
-      
-      const userCreatedToday = userCreatedDate && 
-        userCreatedDate.getTime() === todayDate.getTime();
-      const userCreatedYesterday = userCreatedDate && 
-        userCreatedDate.getTime() === yesterdayDate.getTime();
-      
-      // If user was created today or yesterday, return 0
-      // Users created yesterday haven't had a full day yet, so they should show ₹0 for today
-      // This ensures ₹0 appears in leaderboard, portfolio dashboard, and everywhere else
-      if (userCreatedToday || userCreatedYesterday) {
-        return 0;
-      }
-      
-      // For all users (new users have yesterdayTotalEarnings = 100000 set at creation)
-      // Calculate: current portfolio value - yesterday's baseline
+      // Always show actual 1D P&L for every user, even if just created
       let yesterdayTotalEarnings = user.yesterdayTotalEarnings || 0;
-      
-      // Fallback: if yesterdayTotalEarnings is 0 for old users, use lastPortfolioValue
-      // This handles edge cases where data might be incorrect
+      // Fallback for legacy/old user data:
       if (yesterdayTotalEarnings === 0 && user.lastPortfolioValue && user.lastPortfolioValue > 0) {
         yesterdayTotalEarnings = user.lastPortfolioValue;
       }
-      
-      // Standard calculation: current value - yesterday's baseline
-      // For new users created with baseline = 100000: shows their actual profit from start
-      // For old users: shows their actual 1-day change
       return currentPortfolioValue - yesterdayTotalEarnings;
     } catch (error) {
       console.error(`[${new Date().toISOString()}] Error getting 1-day return for user ${userId}:`, error.message);
