@@ -273,17 +273,6 @@ const StockDetails = () => {
                 </div>
               </DialogContent>
             </Dialog>
-            {stockData.symbol && (
-              <a
-                href={`https://in.tradingview.com/chart/?symbol=NSE:${stockData.symbol}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 rounded-md border border-input bg-background px-3 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground"
-              >
-                <ExternalLink className="h-4 w-4" />
-                View Chart
-              </a>
-            )}
             <Button
               variant="outline"
               onClick={() => fetchStockData(true)}
@@ -308,6 +297,23 @@ const StockDetails = () => {
               change={toNumber(stockData.change ?? stockData.netChange)}
               changePercent={toNumber(stockData.changePercent ?? stockData.pChange)}
             />
+            {stockData.symbol && (
+              <div className="rounded-md border border-border bg-card p-5 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                <div>
+                  <p className="text-sm text-muted-foreground">Need advanced charting?</p>
+                  <p className="text-base font-medium text-foreground">View {stockData.symbol} on TradingView</p>
+                </div>
+                <a
+                  href={`https://in.tradingview.com/chart/?symbol=NSE:${stockData.symbol}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 rounded-md border border-input bg-background px-4 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground"
+                >
+                  <ExternalLink className="h-4 w-4" />
+                  View Chart
+                </a>
+              </div>
+            )}
             {/* Chart requires real series; until we have a backend timeseries endpoint, hide chart */}
             {/* <div className="rounded-md border border-border p-6 text-sm text-muted-foreground">
               Intraday chart will appear when timeseries API is available.
