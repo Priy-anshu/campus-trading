@@ -13,8 +13,14 @@ export class DailyProfitService {
    * @param {number} currentPortfolioValue - Current total portfolio value
    * @param {number} previousPortfolioValue - Previous portfolio value (from last calculation)
    */
-  static async updateDailyProfit(userId, currentPortfolioValue, previousPortfolioValue = null) {
+  static async updateDailyProfit(
+    userId,
+    currentPortfolioValue,
+    previousPortfolioValue = null,
+    options = {}
+  ) {
     try {
+      const { allowDailyReset = false, allowMonthlyReset = false } = options;
       const user = await User.findById(userId);
       if (!user) {
         console.error(`User ${userId} not found for daily profit update`);
@@ -31,8 +37,11 @@ export class DailyProfitService {
       const isNewMonth = !user.lastMonthlyReset || 
         user.lastMonthlyReset.toISOString().split('T')[0] !== startOfMonth.toISOString().split('T')[0];
 
+      const shouldResetDaily = allowDailyReset && isNewDay;
+      const shouldResetMonthly = allowMonthlyReset && isNewMonth;
+
       // If it's a new day, reset daily profit and store yesterday's earnings
-      if (isNewDay) {
+      if (shouldResetDaily) {
         // Check if user was created yesterday
         const yesterday = new Date(today);
         yesterday.setDate(yesterday.getDate() - 1);
@@ -56,7 +65,7 @@ export class DailyProfitService {
       }
 
       // If it's a new month, reset monthly profit and store start of month portfolio value
-      if (isNewMonth) {
+      if (shouldResetMonthly) {
         // Check if user was created this month
         const userCreatedDate = user.createdAt ? 
           new Date(user.createdAt.toISOString().split('T')[0]) : null;
@@ -77,7 +86,7 @@ export class DailyProfitService {
         
         user.monthlyProfit = 0;
         user.lastMonthlyReset = startOfMonth;
-      } else {
+      } else if (!isNewMonth) {
         // Same month - ensure we have the start of month portfolio value set
         if (!user.startOfMonthPortfolioValue) {
           user.startOfMonthPortfolioValue = 100000; // Default to initial investment
@@ -95,20 +104,22 @@ export class DailyProfitService {
       }
 
       // Update daily and monthly profits with earnings
-      if (isNewDay) {
+      if (shouldResetDaily) {
         user.dailyProfit = 0; // Reset to 0 for new day
-      } else {
+      } else if (!isNewDay) {
         user.dailyProfit = dailyEarnings; // Update to current total earnings for same day
       }
       
-      if (isNewMonth) {
+      if (shouldResetMonthly) {
         user.monthlyProfit = 0; // Reset to 0 for new month
-      } else {
+      } else if (!isNewMonth) {
         user.monthlyProfit = dailyEarnings; // Update to current total earnings for same month
       }
       
       user.totalProfit = dailyEarnings;
-      user.lastPortfolioValue = currentPortfolioValue;
+      if (shouldResetDaily || !isNewDay) {
+        user.lastPortfolioValue = currentPortfolioValue;
+      }
       
       await user.save();
 
@@ -116,8 +127,10 @@ export class DailyProfitService {
       await this.storeDailyEarningsRecord(userId, currentPortfolioValue);
       
       // Store daily profit record (store 0 for new day, dailyEarnings for same day)
-      const profitToStore = isNewDay ? 0 : dailyEarnings;
-      await this.storeDailyProfitRecord(userId, profitToStore, currentPortfolioValue);
+      if (shouldResetDaily || !isNewDay) {
+        const profitToStore = shouldResetDaily ? 0 : dailyEarnings;
+        await this.storeDailyProfitRecord(userId, profitToStore, currentPortfolioValue);
+      }
 
     } catch (error) {
       console.error(`[${new Date().toISOString()}] Error updating daily profit for user ${userId}:`, error.message);
@@ -381,7 +394,12 @@ export class DailyProfitService {
           if (isNewMonth) monthlyResets++;
           
           // Update daily profit (this handles both daily and monthly resets)
-          await this.updateDailyProfit(user._id, currentValue, previousValue);
+          await this.updateDailyProfit(
+            user._id,
+            currentValue,
+            previousValue,
+            { allowDailyReset: true, allowMonthlyReset: true }
+          );
           
           // Store current value for next calculation
           user.lastPortfolioValue = currentValue;

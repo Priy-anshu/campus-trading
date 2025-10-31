@@ -260,8 +260,6 @@ router.post('/buy', async (req, res) => {
   try {
     const currentPortfolioValue = await DailyProfitService.calculatePortfolioValue(req.userId);
     await DailyProfitService.updateDailyProfit(req.userId, currentPortfolioValue, user.lastPortfolioValue);
-    user.lastPortfolioValue = currentPortfolioValue;
-    await user.save();
   } catch (error) {
     console.error('Error updating daily profit after buy:', error);
   }
@@ -313,8 +311,6 @@ router.post('/sell', async (req, res) => {
   try {
     const currentPortfolioValue = await DailyProfitService.calculatePortfolioValue(req.userId);
     await DailyProfitService.updateDailyProfit(req.userId, currentPortfolioValue, user.lastPortfolioValue);
-    user.lastPortfolioValue = currentPortfolioValue;
-    await user.save();
   } catch (error) {
     console.error('Error updating daily profit after sell:', error);
   }
