@@ -221,6 +221,14 @@ const StockDetails = () => {
     );
   }
 
+  const normalizedSymbol = (stockData.symbol || symbol || '').toString();
+  const tradingViewUrl = normalizedSymbol
+    ? `https://in.tradingview.com/chart/?symbol=NSE:${normalizedSymbol.toUpperCase()}`
+    : null;
+  const fundamentalsUrl = normalizedSymbol
+    ? `https://www.screener.in/company/${normalizedSymbol.toLowerCase()}/consolidated/`
+    : null;
+
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
@@ -297,21 +305,36 @@ const StockDetails = () => {
               change={toNumber(stockData.change ?? stockData.netChange)}
               changePercent={toNumber(stockData.changePercent ?? stockData.pChange)}
             />
-            {stockData.symbol && (
+            {normalizedSymbol && (
               <div className="rounded-md border border-border bg-card p-5 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                 <div>
-                  <p className="text-sm text-muted-foreground">Need advanced charting?</p>
-                  <p className="text-base font-medium text-foreground">View {stockData.symbol} on TradingView</p>
+                  <p className="text-sm text-muted-foreground">Need deeper analysis?</p>
+                  <p className="text-base font-medium text-foreground">Explore {normalizedSymbol} across external tools</p>
                 </div>
-                <a
-                  href={`https://in.tradingview.com/chart/?symbol=NSE:${stockData.symbol}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 rounded-md border border-input bg-background px-4 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground"
-                >
-                  <ExternalLink className="h-4 w-4" />
-                  View Chart
-                </a>
+                <div className="flex flex-col sm:flex-row gap-2">
+                  {tradingViewUrl && (
+                    <a
+                      href={tradingViewUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center justify-center gap-2 rounded-md border border-input bg-background px-4 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground"
+                    >
+                      <ExternalLink className="h-4 w-4" />
+                      View Chart
+                    </a>
+                  )}
+                  {fundamentalsUrl && (
+                    <a
+                      href={fundamentalsUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center justify-center gap-2 rounded-md border border-input bg-background px-4 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground"
+                    >
+                      <ExternalLink className="h-4 w-4" />
+                      View Fundamentals
+                    </a>
+                  )}
+                </div>
               </div>
             )}
             {/* Chart requires real series; until we have a backend timeseries endpoint, hide chart */}
