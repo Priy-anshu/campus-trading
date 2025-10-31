@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft, RefreshCw, Plus, Eye } from "lucide-react";
+import { ArrowLeft, RefreshCw, Plus, Eye, ExternalLink } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import StockOverview from "@/components/Stock/StockOverview";
 import StockChart from "@/components/Stock/StockChart";
@@ -273,6 +273,17 @@ const StockDetails = () => {
                 </div>
               </DialogContent>
             </Dialog>
+            {stockData.symbol && (
+              <a
+                href={`https://in.tradingview.com/chart/?symbol=NSE:${stockData.symbol}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 rounded-md border border-input bg-background px-3 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground"
+              >
+                <ExternalLink className="h-4 w-4" />
+                View Chart
+              </a>
+            )}
             <Button
               variant="outline"
               onClick={() => fetchStockData(true)}
