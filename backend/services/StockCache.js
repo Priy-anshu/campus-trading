@@ -138,18 +138,19 @@ export async function refreshCache() {
         }
       });
 
-      // Preserve stocks from previous cache that weren't in API response
+      // Calculate top gainers and losers ONLY from actively updated stocks in the current live API feed
+      const activeLiveStocks = Object.values(newCacheMap);
+      const sortedByChange = [...activeLiveStocks].sort((a, b) => b.pChange - a.pChange);
+      cache.gainers = sortedByChange.slice(0, 20); // Top 20 live gainers
+      cache.losers = sortedByChange.slice(-20).reverse(); // Top 20 live losers (most negative first)
+
+      // Preserve fallback stocks from previous cache for search and portfolio tracking
       Object.keys(prevCacheMap).forEach(symbol => {
         if (!newCacheMap[symbol]) newCacheMap[symbol] = prevCacheMap[symbol];
       });
 
-      // Update cache arrays with new data
+      // Complete cache array with all stocks (live + fallback)
       cache.all = Object.values(newCacheMap);
-      
-      // Sort once descending: highest percentage gain to lowest
-      const sortedByChange = [...cache.all].sort((a, b) => b.pChange - a.pChange);
-      cache.gainers = sortedByChange.slice(0, 20); // Top 20 gainers
-      cache.losers = sortedByChange.slice(-20).reverse(); // Top 20 losers (most negative first)
       
       // Update cache metadata
       cache.lastUpdated = Date.now();
@@ -209,10 +210,15 @@ export async function loadStocksFromDatabase() {
       cache.losers = sortedByChange.slice(-20).reverse(); // Top 20 losers (most negative first)
       cache.lastUpdated = Date.now();
       
-      console.log(`[${new Date().toISOString()}] Loaded ${stocks.length} stocks from database`);
+      const mostRecentDate = stocks[0]?.lastUpdated 
+        ? new Date(stocks[0].lastUpdated).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', dateStyle: 'medium', timeStyle: 'medium' })
+        : 'Unknown';
+      console.log(`📦 [MongoDB] Loaded ${stocks.length} stocks from database on server startup (Last updated: ${mostRecentDate})`);
+    } else {
+      console.log(`📦 [MongoDB] 0 stocks loaded from database on server startup (database is empty or inactive)`);
     }
   } catch (error) {
-    console.error(`[${new Date().toISOString()}] Error loading stocks from database:`, error.message);
+    console.error(`❌ [MongoDB Error] Error loading stocks from database on startup:`, error.message);
   }
 }
 

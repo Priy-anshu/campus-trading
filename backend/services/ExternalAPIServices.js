@@ -8,9 +8,9 @@ async function fetchFromNSE(url) {
         'Accept': 'application/json, text/plain, */*'
       }
     });
-    return { success: true, data: response.data };
+    return { success: true, data: response.data, status: response.status };
   } catch (err) {
-    return { success: false, error: err.message };
+    return { success: false, error: err.message, status: err.response?.status };
   }
 }
 
@@ -59,6 +59,9 @@ export async function fetchAllStockInsiderTrades() {
       return { success: true, data: normalized };
     }
   }
+
+  const errorStatus = result.status || (result.data ? 'Unexpected response format' : result.error || 'Unknown error');
+  console.error(`❌ [NSE API Error] Failed to fetch stocks from ${url} (Status: ${errorStatus}). If NSE changed this endpoint, update NSE_ALL_STOCKS_URL in your .env file.`);
   return await fetchAllNiftyQuotes();
 }
 
