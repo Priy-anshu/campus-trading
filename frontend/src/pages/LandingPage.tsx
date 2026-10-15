@@ -24,10 +24,7 @@ const LandingPage = () => {
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="flex h-16 items-center justify-between">
             <div className={`flex items-center gap-2 transition-all duration-1000 ${isVisible ? 'translate-x-0 opacity-100' : '-translate-x-10 opacity-0'}`}>
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-primary/80 animate-bounce">
-                <TrendingUp className="h-6 w-6 text-primary-foreground" />
-              </div>
-              <span className="text-xl font-bold text-foreground">Campus Exchange</span>
+              <span className="text-xl font-bold text-foreground">Campus Trading</span>
             </div>
             
             <div className={`flex items-center gap-4 transition-all duration-1000 delay-300 ${isVisible ? 'translate-x-0 opacity-100' : 'translate-x-10 opacity-0'}`}>
@@ -215,13 +212,10 @@ const LandingPage = () => {
         <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
           <div className="text-center">
             <div className="flex items-center justify-center gap-2 mb-4">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-primary/80">
-                <TrendingUp className="h-5 w-5 text-primary-foreground" />
-              </div>
-              <span className="text-lg font-bold text-foreground">Campus Exchange</span>
+              <span className="text-lg font-bold text-foreground">Campus Trading</span>
             </div>
             <p className="text-sm text-muted-foreground">
-              © 2024 Campus Exchange. All rights reserved.
+              © 2024 Campus Trading. All rights reserved.
             </p>
           </div>
         </div>

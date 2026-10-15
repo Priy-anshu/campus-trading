@@ -91,9 +91,6 @@ const Navbar = () => {
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 items-center justify-between">
           <Link to="/dashboard" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
-            <div className="hidden md:flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-primary/80">
-              <TrendingUp className="h-6 w-6 text-primary-foreground" />
-            </div>
             <span className="text-xl font-bold bg-gradient-to-r from-green-500 via-green-400 via-yellow-500 via-red-500 to-red-600 bg-clip-text text-transparent animate-trading-gradient">Campus Trading</span>
           </Link>
           

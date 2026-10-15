@@ -57,8 +57,8 @@ const MarketTicker = () => {
     return now;
   };
 
-  // Simple animation: 40 minutes duration
-  const ANIMATION_DURATION = 40 * 60 * 1000; // 40 minutes in milliseconds
+  // Simple animation: 160 minutes duration (1/4th speed)
+  const ANIMATION_DURATION = 160 * 60 * 1000; // 160 minutes in milliseconds
   
   // Function to set animation position based on elapsed time
   const setAnimationPosition = () => {
@@ -74,8 +74,8 @@ const MarketTicker = () => {
         // Calculate how far we should be in the current cycle
         const cycleElapsed = elapsed % ANIMATION_DURATION;
         
-        // Simple: scroll 1 pixel per 10ms = 100px per second (very slow)
-        const translateX = -cycleElapsed * 0.1;
+        // Slow speed: 0.025px per ms = 25px per second (1/4th of previous speed)
+        const translateX = -cycleElapsed * 0.025;
         
         // Check if we've completed a full cycle (elapsed >= ANIMATION_DURATION)
         if (elapsed >= ANIMATION_DURATION) {
