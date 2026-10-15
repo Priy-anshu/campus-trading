@@ -199,17 +199,20 @@ const MarketTicker = () => {
     return () => clearInterval(interval);
   }, []); // Empty dependency array - runs independently
 
-  // Set initial animation position and start very slow animation
+  // Set initial animation position and run smooth 60fps animation loop
   useEffect(() => {
-    // Set initial position immediately
-    setAnimationPosition();
-    
-    // Start the animation loop with very slow movement
-    const animationInterval = setInterval(() => {
-      setAnimationPosition();
-    }, 100); // Update every 100ms for smooth animation
+    let animationFrameId: number;
 
-    return () => clearInterval(animationInterval);
+    const animate = () => {
+      setAnimationPosition();
+      animationFrameId = requestAnimationFrame(animate);
+    };
+
+    animationFrameId = requestAnimationFrame(animate);
+
+    return () => {
+      cancelAnimationFrame(animationFrameId);
+    };
   }, []); // Empty dependency array - animation runs independently
 
   // Cleanup storage on component unmount (optional)
