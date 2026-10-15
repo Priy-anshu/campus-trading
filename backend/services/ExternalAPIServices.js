@@ -14,35 +14,50 @@ async function fetchFromNSE(url) {
   }
 }
 
-export async function fetchTopGainers(limit = 10) {
-  const url = 'https://www.nseindia.com/api/live-analysis-variations?index=NIFTY%2050';
-  const result = await fetchFromNSE(url);
-  if (result.success && result.data?.gainers) {
-    return { success: true, data: result.data.gainers.slice(0, limit) };
-  }
-  const all = await fetchAllNiftyQuotes();
-  if (!all.success) return { success: false, error: all.error };
-  const sorted = [...all.data].sort((a, b) => (b.pChange || 0) - (a.pChange || 0));
+export async function fetchTopGainers(limit = 20) {
+  const allRes = await fetchAllStockInsiderTrades();
+  if (!allRes.success || !Array.isArray(allRes.data)) return { success: false, error: allRes.error || 'No data' };
+  const sorted = [...allRes.data].sort((a, b) => (b.pChange || 0) - (a.pChange || 0));
   return { success: true, data: sorted.slice(0, limit) };
 }
 
-export async function fetchTopLosers(limit = 10) {
-  const url = 'https://www.nseindia.com/api/live-analysis-variations?index=NIFTY%2050';
-  const result = await fetchFromNSE(url);
-  if (result.success && result.data?.losers) {
-    return { success: true, data: result.data.losers.slice(0, limit) };
-  }
-  const all = await fetchAllNiftyQuotes();
-  if (!all.success) return { success: false, error: all.error };
-  const sorted = [...all.data].sort((a, b) => (a.pChange || 0) - (b.pChange || 0));
-  return { success: true, data: sorted.slice(0, limit) };
+export async function fetchTopLosers(limit = 20) {
+  const allRes = await fetchAllStockInsiderTrades();
+  if (!allRes.success || !Array.isArray(allRes.data)) return { success: false, error: allRes.error || 'No data' };
+  const sorted = [...allRes.data].sort((a, b) => (b.pChange || 0) - (a.pChange || 0));
+  return { success: true, data: sorted.slice(-limit).reverse() };
 }
 
 export async function fetchAllStockInsiderTrades() {
-  const url = 'https://www.nseindia.com/api/equity-stockIndices?index=NIFTY TOTAL MARKET';
+  const url = process.env.NSE_ALL_STOCKS_URL || 'https://www.nseindia.com/api/market-data-pre-open?key=ALL';
   const result = await fetchFromNSE(url);
-  if (result.success && result.data?.data) {
-    return { success: true, data: result.data.data };
+  if (result.success && Array.isArray(result.data?.data)) {
+    const normalized = result.data.data.map(item => {
+      const meta = item.metadata || item;
+      const detail = item.detail?.preOpenMarket || {};
+      const symbol = (meta.symbol || item.symbol || '').toUpperCase();
+      const lastPrice = Number(meta.lastPrice ?? meta.finalPrice ?? meta.iep ?? item.lastPrice ?? 0);
+      const pChange = Number(meta.pChange ?? detail.perChange ?? item.pChange ?? 0);
+      const change = Number(meta.change ?? detail.Change ?? item.change ?? 0);
+      const totalTradedVolume = Number(meta.finalQuantity ?? detail.totalTradedVolume ?? meta.totalTurnover ?? item.totalTradedVolume ?? 0);
+
+      return {
+        symbol,
+        name: meta.companyName || meta.name || symbol,
+        lastPrice,
+        price: lastPrice,
+        pChange,
+        changePercent: pChange,
+        change,
+        totalTradedVolume,
+        volume: totalTradedVolume,
+        previousClose: Number(meta.previousClose ?? detail.prevClose ?? 0)
+      };
+    }).filter(s => s.symbol && s.lastPrice > 0);
+
+    if (normalized.length > 0) {
+      return { success: true, data: normalized };
+    }
   }
   return await fetchAllNiftyQuotes();
 }

@@ -41,7 +41,8 @@ export const StockDataProvider = ({ children }: StockDataProviderProps) => {
     try {
       setError(null);
       const { data } = await apiClient.get(ENDPOINTS.allStocks);
-      setStockData(data || []);
+      const stocks = Array.isArray(data) ? data : (data?.data || []);
+      setStockData(stocks);
     } catch (err) {
       // Silently handle errors
       setError('Failed to fetch stock data');

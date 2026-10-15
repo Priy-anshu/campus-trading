@@ -146,10 +146,10 @@ export async function refreshCache() {
       // Update cache arrays with new data
       cache.all = Object.values(newCacheMap);
       
-      // Sort stocks by percentage change and create gainers/losers lists
+      // Sort once descending: highest percentage gain to lowest
       const sortedByChange = [...cache.all].sort((a, b) => b.pChange - a.pChange);
-      cache.gainers = sortedByChange.slice(0, 1000); // Top 1000 gainers
-      cache.losers = sortedByChange.reverse().slice(0, 1000); // Top 1000 losers
+      cache.gainers = sortedByChange.slice(0, 20); // Top 20 gainers
+      cache.losers = sortedByChange.slice(-20).reverse(); // Top 20 losers (most negative first)
       
       // Update cache metadata
       cache.lastUpdated = Date.now();
@@ -157,7 +157,7 @@ export async function refreshCache() {
 
       // Update database periodically (every 14 minutes) to persist data
       const now = Date.now();
-      if (stocksToUpdate.length > 0 && now - lastDBUpdate >= DB_UPDATE_INTERVAL) {
+      if (Stock.db?.readyState === 1 && stocksToUpdate.length > 0 && now - lastDBUpdate >= DB_UPDATE_INTERVAL) {
         try {
           // Bulk update stocks in database
           await Promise.all(
@@ -189,6 +189,7 @@ export async function refreshCache() {
  */
 export async function loadStocksFromDatabase() {
   try {
+    if (Stock.db?.readyState !== 1) return;
     // Fetch active stocks from database, sorted by most recent update
     const stocks = await Stock.find({ isActive: true }).sort({ lastUpdated: -1 });
     if (stocks.length > 0) {
@@ -202,10 +203,10 @@ export async function loadStocksFromDatabase() {
         totalTradedVolume: stock.volume,
       }));
       
-      // Create gainers and losers lists from database data
+      // Sort once descending: highest percentage gain to lowest
       const sortedByChange = [...cache.all].sort((a, b) => b.pChange - a.pChange);
-      cache.gainers = sortedByChange.slice(0, 300); // Top 300 gainers
-      cache.losers = sortedByChange.reverse().slice(0, 300); // Top 300 losers
+      cache.gainers = sortedByChange.slice(0, 20); // Top 20 gainers
+      cache.losers = sortedByChange.slice(-20).reverse(); // Top 20 losers (most negative first)
       cache.lastUpdated = Date.now();
       
       console.log(`[${new Date().toISOString()}] Loaded ${stocks.length} stocks from database`);
@@ -221,6 +222,7 @@ export async function loadStocksFromDatabase() {
  */
 export async function initializeCompanyNames() {
   try {
+    if (Stock.db?.readyState !== 1) return;
     // Check if we already have company names in database
     const sampleStock = await Stock.findOne({ isActive: true, name: { $exists: true, $ne: '', $ne: null } });
     
@@ -326,16 +328,16 @@ setInterval(() => {
  * @param {number} limit - Maximum number of stocks to return (default: 10)
  * @returns {Array} Array of top performing stocks
  */
-export function getGainers(limit = 10) {
+export function getGainers(limit = 20) {
   return cache.gainers.slice(0, limit);
 }
 
 /**
  * Get worst performing stocks (losers)
- * @param {number} limit - Maximum number of stocks to return (default: 10)
+ * @param {number} limit - Maximum number of stocks to return (default: 20)
  * @returns {Array} Array of worst performing stocks
  */
-export function getLosers(limit = 10) {
+export function getLosers(limit = 20) {
   return cache.losers.slice(0, limit);
 }
 
