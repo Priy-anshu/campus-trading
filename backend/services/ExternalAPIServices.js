@@ -4,9 +4,11 @@ async function fetchFromNSE(url) {
   try {
     const response = await axios.get(url, {
       headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
-        'Accept': 'application/json, text/plain, */*'
-      }
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
+        'Accept': 'application/json, text/plain, */*',
+        'Accept-Language': 'en-US,en;q=0.9',
+      },
+      timeout: 8000
     });
     return { success: true, data: response.data, status: response.status };
   } catch (err) {
@@ -61,7 +63,7 @@ export async function fetchAllStockInsiderTrades() {
   }
 
   const errorStatus = result.status || (result.data ? 'Unexpected response format' : result.error || 'Unknown error');
-  console.error(`❌ [NSE API Error] Failed to fetch stocks from ${url} (Status: ${errorStatus}). If NSE changed this endpoint, update NSE_ALL_STOCKS_URL in your .env file.`);
+  console.warn(`⚠️ [NSE API Notice] Status: ${errorStatus} from ${url}. Switching to Yahoo Finance market feed.`);
   return await fetchAllNiftyQuotes();
 }
 
@@ -227,61 +229,126 @@ const NIFTY50_SYMBOLS = [
   'MTR.NS','MUKARAMPHARM.NS','MUKUND.NS','MULTI.NS','MUNOT.NS','MUNSONALPHA.NS','MURUDESHWAR.NS','MUTHOOT.NS','MUTHOOTFIN.NS','MUVIS.NS'
 ];
 
+let yahooSession = {
+  cookie: '',
+  crumb: '',
+  lastUpdated: 0
+};
+
+async function getYahooSession() {
+  const now = Date.now();
+  if (yahooSession.cookie && yahooSession.crumb && (now - yahooSession.lastUpdated < 4 * 60 * 60 * 1000)) {
+    return yahooSession;
+  }
+  try {
+    const agent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36';
+    const initRes = await axios.get('https://fc.yahoo.com', {
+      headers: { 'User-Agent': agent },
+      validateStatus: () => true,
+      timeout: 5000
+    });
+    const setCookie = initRes.headers['set-cookie'];
+    const cookies = (setCookie || []).map(c => c.split(';')[0]).join('; ');
+    if (cookies) {
+      const crumbRes = await axios.get('https://query2.finance.yahoo.com/v1/test/getcrumb', {
+        headers: { 'User-Agent': agent, 'Cookie': cookies },
+        timeout: 5000
+      });
+      if (crumbRes.data && typeof crumbRes.data === 'string' && !crumbRes.data.includes('{')) {
+        yahooSession = {
+          cookie: cookies,
+          crumb: crumbRes.data.trim(),
+          lastUpdated: now
+        };
+        return yahooSession;
+      }
+    }
+  } catch (err) {
+    console.error('Failed to initialize Yahoo session:', err.message);
+  }
+  return null;
+}
+
 async function fetchYahooQuotesForSymbols(symbols) {
-  const chunkSize = 100; // Fetch 100 stocks at a time for better efficiency
+  const uniqueSymbols = [...new Set(symbols)];
+  const session = await getYahooSession();
+  const chunkSize = 50;
   const chunks = [];
-  for (let i = 0; i < symbols.length; i += chunkSize) chunks.push(symbols.slice(i, i + chunkSize));
-  const results = [];
-  for (const chunk of chunks) {
-    const url = `https://query1.finance.yahoo.com/v7/finance/quote?symbols=${encodeURIComponent(chunk.join(','))}`;
+  for (let i = 0; i < uniqueSymbols.length; i += chunkSize) chunks.push(uniqueSymbols.slice(i, i + chunkSize));
+  const agent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36';
+
+  const chunkPromises = chunks.map(async (chunk) => {
     try {
-      const resp = await axios.get(url, { headers: { 'User-Agent': 'Mozilla/5.0' } });
+      let url = `https://query2.finance.yahoo.com/v7/finance/quote?symbols=${encodeURIComponent(chunk.join(','))}`;
+      const headers = { 'User-Agent': agent };
+      if (session?.crumb && session?.cookie) {
+        url += `&crumb=${encodeURIComponent(session.crumb)}`;
+        headers['Cookie'] = session.cookie;
+      }
+      const resp = await axios.get(url, { headers, timeout: 8000 });
       const quotes = resp.data?.quoteResponse?.result || [];
+      const chunkResults = [];
       for (const q of quotes) {
         const symbol = (q.symbol || '').replace('.NS', '');
         
-        // Get name - prioritize longName, but use shortName if longName is missing
-        // Only use a name if it's different from symbol
         let name = '';
         if (q.longName && q.longName !== symbol) {
           name = q.longName;
         } else if (q.shortName && q.shortName !== symbol) {
           name = q.shortName;
-        } else {
-          // If no distinct name, leave empty (frontend will hide it)
-          name = '';
         }
-        
-        results.push({
+
+        const price = q.regularMarketPrice ?? null;
+        const pChange = q.regularMarketChangePercent ?? 0;
+        const change = q.regularMarketChange ?? 0;
+        const volume = q.regularMarketVolume ?? 0;
+
+        chunkResults.push({
           symbol,
-          name,
-          lastPrice: q.regularMarketPrice ?? null,
-          pChange: q.regularMarketChangePercent ?? null,
-          change: q.regularMarketChange ?? null,
-          totalTradedVolume: q.regularMarketVolume ?? null,
+          name: name || symbol,
+          lastPrice: price,
+          price: price,
+          pChange,
+          changePercent: pChange,
+          change,
+          totalTradedVolume: volume,
+          volume,
+          previousClose: q.regularMarketPreviousClose ?? ((price && change) ? price - change : 0)
         });
       }
-    } catch (e) { /* ignore */ }
-  }
-  return results;
+      return chunkResults;
+    } catch (e) {
+      if (e.response?.status === 401) {
+        yahooSession.lastUpdated = 0;
+      }
+      return [];
+    }
+  });
+
+  const allChunkResults = await Promise.all(chunkPromises);
+  return allChunkResults.flat();
 }
 
 async function fetchAllNiftyQuotes() {
   try {
     const data = await fetchYahooQuotesForSymbols(NIFTY50_SYMBOLS);
-    if (!data.length) {
+    const validData = data.filter(s => s && s.lastPrice && s.lastPrice > 0);
+    if (!validData.length) {
       // Final static fallback (prices null, zero change)
       const fallback = NIFTY50_SYMBOLS.map(s => ({
         symbol: s.replace('.NS',''),
         name: s.replace('.NS',''), // Fallback to symbol as name
         lastPrice: null,
+        price: null,
         pChange: 0,
+        changePercent: 0,
         change: 0,
         totalTradedVolume: null,
+        volume: null,
       }));
       return { success: true, data: fallback };
     }
-    return { success: true, data };
+    return { success: true, data: validData };
   } catch (e) {
     const fallback = NIFTY50_SYMBOLS.map(s => ({
       symbol: s.replace('.NS',''),
